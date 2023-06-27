@@ -1,0 +1,441 @@
+#!/bin/bash
+
+<< COMMENT
+
+    USAGE : 
+        ./ViroScan [-h] -f <fastq_directory> -v <virus> -s <se|pe> -o <output_directory> 
+        [-x <reference_filter_out>] [-p <threads>] [-b <\"breseq_options\">] [-t <threshold>]
+    DESCRIPTION : 
+        ViroScan is an automated pipeline that eliminate reads according to a reference (filter out), 
+        retain only viral reads (filter in) and determine the percentage of provenance among a set of viral genomes
+    PREREQUISITE : 
+        * Scripts :
+            - bash file config.sh into the config directory
+            - python script write_output_tables.py into the src directory
+        * Tools :
+            - Bowtie2 (http://bowtie-bio.sourceforge.net/bowtie2/index.shtml)
+            - Python3 (https://www.python.org/downloads/)
+            - R (https://www.r-project.org/)
+            - breseq (https://barricklab.org/twiki/pub/Lab/ToolsBacterialGenomeResequencing/documentation/)
+            NB : Bowtie2 and R are used by breseq
+        * Data :
+            - Viruses references in Genbank format into the directory data
+        * Python modules :
+            - argparse
+            - json
+            - re
+            - sys
+    AUTHOR :
+        Sarah BOUZIDI
+        Engineer in bioinformatics
+        Centre National de la Recherche Scientifique (CNRS)
+        Team Virostyle, Laboratory MIVEGEC, IRD, Montpellier
+        
+COMMENT
+
+# Exit if a command exits with a non zero status
+set -e
+
+
+
+########################################################################################
+#                                    CONFIGURATION
+########################################################################################
+
+# Check if config file exist and import it
+if [ ! -f "$(dirname $0)"/config/config.sh ]
+then
+	echo -e "ViroScan: error : The config file "$(dirname $0)"/config/config.sh used by ViroScan doesn't exist"
+	exit
+else
+    source "$(dirname $0)"/config/config.sh
+fi
+
+
+
+########################################################################################
+#                                    COMMAND LINE
+########################################################################################
+
+# Function to print the header in the shell
+function header(){
+    printf "\nViroScan\n"
+    printf "2022 - Sarah Bouzidi <sarah.bouzidi@ird.fr>\n"
+}
+
+### USAGE OF THE PIPELINE
+function usage(){
+    header
+    printf "\nUsage :\n"
+	printf "./ViroScan [-h] -f <fastq_directory> -v <virus> -s <se|pe> -o <output_directory> [-x <reference_filter_out>] [-p <threads>] [-b <\"breseq_options\">] [-t <threshold>]\n"
+    
+    printf "\nAbout :\n"
+    printf "ViroScan is an automated pipeline that eliminate reads according to a reference (filter out), retain only viral reads (filter in) and determine the percentage of provenance among a set of viral genomes\n"
+	
+    printf "\nPrerequisite :\n"
+    printf "\t- Bowtie2 (http://bowtie-bio.sourceforge.net/bowtie2/index.shtml)\n"
+    printf "\t- Python3 (https://www.python.org/downloads/)\n"
+    printf "\t- R (https://www.r-project.org/)\n"
+    printf "\t- breseq (https://barricklab.org/twiki/pub/Lab/ToolsBacterialGenomeResequencing/documentation/)\n"
+    
+    printf "\nMandatory options :\n"
+	printf "\t-f                 : Path of the FASTQ file(s) to analyse. 
+                             In case of paired-end, make sure your
+                             files have '_R1_paired.fastq.gz', 
+                             '_R2_paired.fastq.gz', '_R1_unpaired.fastq.gz'
+                             '_R2_unpaired.fastq.gz'.
+                             In case of single-end, '.fastq', '.fq' and '.gz'
+                             extensions are accepted ;\n\n"
+    
+    printf "\t-v                 : Virus to use to find the closest viral sequence.
+                             Available :
+                             - adenoviridae
+                             - adomavirus
+                             - anelloviridae
+                             - circoviridae
+                             - herpesvirales
+                             - papillomavirus
+                             - parvoviridae
+                             - polyomavirus 
+                             If you want to use your own viral sequence, add
+                             a '.gbk' file into the data directory ;\n\n"
+    printf "\t-s                 : Single-end or paired-end data to analyse ;\n\n"
+	
+    printf "\t-o                 : Path of the output directory where results will 
+                             be written. 
+                             If the directory doesn't exist, it will be created ;\n"
+    
+    printf "\nSupplementary options :\n"
+    printf "\t-x                 : Path of reference indexed and the pattern name 
+                             of indexes to perform filter out. Make sure the reference
+                             was indexed by Bowtie. So, it's means files have to
+                             finished by '.bt2' ;\n\n"
+
+	printf "\t-p                 : Number of threads to use. 
+                             Default 1 ;\n\n"
+    
+    printf "\t-b                 : breseq options. 
+                             Default \"-p -t\".
+                             Make sure if you want to change default options to
+                             input the value with quotation marks.
+                             Warning : Do not inform option -j ;\n\n"
+    
+    printf "\t-t                 : Threshold value of the minimum alignment 
+                             percentage to report. 
+                             Default 5 ;\n\n"
+    printf "\t-h                 : Help ;\n" 
+
+    printf "\nExample :\n"
+    printf "/home/user/ViroScan/ViroScan -f /home/user/dir_of_data_to_analyse -v papillomavirus -s pe -o /home/user/data_analysed -x /home/user/GRCh38_noalt_as/GRCh38_noalt_as -p 12\n"
+}
+
+# Print usage if there is just the name of the script in command line
+if [ $# -eq 0 ]
+then
+	usage
+	exit
+fi
+
+
+### ARGS
+while getopts ":f:v:s:o:x:p:b:t:h" option; 
+do
+    case "${option}" in
+        f)
+            f=${OPTARG};;
+        v)
+            v=${OPTARG};;
+        s)
+            s=${OPTARG};;
+        o)
+            o=${OPTARG};;
+        x)
+            REFINDEXED=${OPTARG};;
+        p)
+            THREADS=${OPTARG};;
+        b)
+            BRESEQ_OPTIONS=${OPTARG};;
+        t)
+            THRESHOLD=${OPTARG};;
+        h)
+            usage
+            exit;;
+        *)
+            usage;;
+    esac
+done
+shift $((OPTIND-1))
+
+
+
+########################################################################################
+#                                    VERIFICATION 
+########################################################################################
+
+### COMMAND LINE & VALUES
+# Check if mandatory arguments exists
+if [ -z "${f}" ] || [ -z "${v}" ] || [ -z "${s}" ] || [ -z "${o}" ]; 
+then
+    echo -e "ViroScan: warning : You must enter all the mandatory arguments"
+    echo -e "Use \"ViroScan -h\" to see all command-line options."
+    exit
+fi
+
+# Check if the input directory exist
+if [ ! -d "${f}" ]
+then
+	echo -e "ERROR -f : The FASTQ directory ${f} doesn't exist"
+	exit
+fi
+
+# Check if there is at least one FASTQ file into the dir
+NBFASTQFILE=`ls -1 "${f}"/*.f*q* 2>/dev/null | wc -l`
+if [ $NBFASTQFILE = 0 ]
+then 
+	echo -e "ViroScan: warning : : There is no FASTQ file into the directory ${f}"
+	exit
+fi 
+
+# Check if the reference file exist
+if [ ! -f "$DIRDATA/${v}"* ]
+then
+	echo -e "ViroScan: error : The reference file of the virus $virus doesn't exist"
+	exit
+fi
+
+# Check if the read type is input correctly
+if [[ ${s} != "se" && ${s} != "pe" ]]
+then
+    echo -e "ViroScan: warning : For the option -s, you have to write se or pe"
+    exit
+fi
+
+# Check if there are at least one FASTQ _R1/_R2 and as many R1 files as there are R2
+if [ "${s}" == "pe" ]
+then
+    NBFASTQFILER1=`ls -1 "${f}"/*_R1* 2>/dev/null | wc -l`
+    NBFASTQFILER2=`ls -1 "${f}"/*_R2* 2>/dev/null | wc -l`
+    if [ $NBFASTQFILER1 = 0 ]
+    then
+        echo -e "ViroScan: warning : : There is not paired-end FASTQ files, according to _R1 and _R2 pattern name"
+        exit
+    fi
+    if [ $NBFASTQFILER1 != $NBFASTQFILER2 ]
+    then
+        echo -e "ViroScan: warning : : There are not as many FASTQ R1 files as there are FASTQ R2 files"
+        echo -e "Number of R1 files : $NBFASTQFILER1, R2 files : $NBFASTQFILER2"
+        exit
+    fi
+fi
+
+# Check if the value of threads is an integer
+if ! [[ $THREADS =~ ^[0-9]+$ ]]
+then 
+    echo -e "ViroScan: warning : The value of threads informed must be an integer"
+    exit
+fi
+
+# Check if the value of threshold is an float
+if ! [[ $THRESHOLD =~ ^[0-9]+([.][0-9]+)?$ ]]
+then 
+    echo -e "ViroScan: warning : The value of threshold informed must be a float"
+    exit
+fi
+
+
+### CONFIG FILE
+# Check if the directory of the scripts exist
+if [ ! -d "$DIRSCRIPTS" ]
+then
+	echo -e "ViroScan: error : The directory of the scripts "$DIRSCRIPTS" used by ViroScan doesn't exist"
+	exit
+fi
+
+# Check if the scripts exist
+if [ ! -f "$DIRSCRIPTS"/write_output_tables.py ]
+then
+	echo -e "ViroScan: error : The script "$DIRSCRIPTS"/write_output_tables.py used by ViroScan doesn't exist"
+	exit
+fi
+
+# Check if the directory of the data exist
+if [ ! -d "$DIRDATA" ]
+then
+	echo -e "ViroScan: error : The directory of the data "$DIRDATA" used by ViroScan doesn't exist"
+	exit
+fi
+
+# Check if, according to the value in the config file and if var is not empty, there is reference indexed
+if [ ! -z "$REFINDEXED" ]
+then
+    NBINDEXFILE=`ls -1 "$REFINDEXED"*.bt2 2>/dev/null | wc -l`
+    if [ $NBINDEXFILE = 0 ]
+    then 
+    	echo -e "ViroScan: error : There is no index file(s) $(basename $REFINDEXED) into the directory of the data"
+    	exit
+    fi 
+fi
+
+# Check if tools are available
+if ! [ -x "$(command -v bowtie2 --version)" ]
+then
+    echo -e "ViroScan: error : Bowtie2 is needed to use ViroScan"
+	exit
+fi
+if ! [ -x "$(command -v breseq --version)" ]
+then
+    echo -e "ViroScan: error : breseq is needed to use ViroScan"
+	exit
+fi
+if ! [ -x "$(command -v R --version)" ]
+then
+    echo -e "ViroScan: error : R is needed to use ViroScan"
+	exit
+fi
+if ! [ -x "$(command -v python3 --version)" ]
+then
+    echo -e "ViroScan: error : Python3 is needed to use ViroScan"
+	exit
+fi
+
+
+
+########################################################################################
+#                                    INITIALIZATION 
+########################################################################################
+
+# ViroScan "start" so print the header and the command-line used
+header
+echo -e "\nViroScan : Start with the command-line :"
+if [ ! -z "$REFINDEXED" ]
+then
+    echo -e "$(dirname $0)/ViroScan -f ${f} -v ${v} -s ${s} -o ${o} -x ${REFINDEXED} -p ${THREADS} -b \"${BRESEQ_OPTIONS}\" -t ${THRESHOLD}\n"
+else
+    echo -e "$(dirname $0)/ViroScan -f ${f} -v ${v} -s ${s} -o ${o} -p ${THREADS} -b \"${BRESEQ_OPTIONS}\" -t ${THRESHOLD}\n"
+fi
+
+
+### OUTPUT
+# Create the output directory of results if he doesn't exists
+mkdir -p "${o}"
+
+# Create a log files directory into the output directory of results
+mkdir -p "${o}"/log
+
+# Create a temporary directory
+mkdir -p "${o}"/tmp
+
+# Create directory with tool's output and evidence into the output directory of results
+mkdir -p "${o}"/output
+if [ ! -z "$REFINDEXED" ]
+then
+    mkdir -p "${o}"/output/data
+fi
+mkdir -p "${o}"/output/evidence
+mkdir -p "${o}"/output/analysis
+
+
+### FASTQ NAMES
+# Create an array with all fastq file names
+declare -a FASTQ_NAMES
+for fastq_file in "${f}"/*.f*q*
+	do
+		fastq_file_without_path=${fastq_file##*/}
+		fastq_file_without_extension=${fastq_file_without_path%.f*q*}
+        # Single-end
+        if [ "${s}" == "se" ]
+        then 
+            # Save file name
+            FASTQ_NAMES+=("$fastq_file_without_extension")
+        # Paired-end
+        elif [ "${s}" == "pe" ]
+        then
+            # Load file name without extension _R (pattern for R1 and R2)
+            fastq_file_without_read_ext=${fastq_file_without_extension%"_R"*}
+            # Look if the file name doesn't exist in the array (avoid duplicates)
+            if [[ ! "${FASTQ_NAMES[@]}" =~ "${fastq_file_without_read_ext}" ]]
+            then
+                # Save it
+                FASTQ_NAMES+=("$fastq_file_without_read_ext")
+            fi
+        fi
+	done
+
+# Sort the array alphanumerically
+IFS=$'\n' FASTQ_NAMES=($(sort -V <<<"${FASTQ_NAMES[*]}"))
+unset IFS
+
+
+
+#########################################################################################
+#                                    ANALYSIS
+########################################################################################
+
+# Print the header into the counts files
+echo -e "SAMPLE\tNBR_LIKELY_VIRAL_READS\tNBR_VIRAL_READS" > "${o}"/output/evidence/filterin.counts.txt
+echo -e "SAMPLE\tREFERENCE\tPERCENT" > "${o}"/output/evidence/refs.percents.txt
+
+### SINGLE-END
+if [ "${s}" == "se" ]
+then
+    
+    for fastq_name in ${FASTQ_NAMES[@]}
+    	do 
+            echo -e "------------------  $fastq_name  ---------------------"
+
+            if [ ! -z "$REFINDEXED" ]
+            then
+                echo -e "*-------------------- FILTER OUT\n"
+                # Run Bowtie2 to aligned input reads against the genome indexed
+                "$BOWTIE" -x "$REFINDEXED" -p "$THREADS" -U "${f}"/"$fastq_name"*.f*q* -S "${o}"/tmp/"$fastq_name"_aligned_against_genome.sam --un-gz "${o}"/output/data/"$fastq_name".fq.gz &>> "${o}"/log/"$fastq_name""_bowtie2.log"
+                # Remove tmp directory where there is the SAM file of reads aligned
+                rm "${o}"/tmp/*
+
+                echo -e "*-------------------- FILTER IN\n"
+                # Run breseq to aligned and analysed reads of interest
+                "$BRESEQ" -r "$DIRDATA"/"${v}"* $BRESEQ_OPTIONS -j "$THREADS" "${o}"/output/data/"$fastq_name".fq.gz -o "${o}"/output/analysis/"$fastq_name" &>> "${o}"/log/"$fastq_name""_breseq.log"
+                rm "${o}"/log/"$fastq_name""_breseq.log"
+            else
+                echo -e "*-------------------- FILTER IN\n"
+                # Run breseq to aligned and analysed reads of interest
+                "$BRESEQ" -r "$DIRDATA"/"${v}"* $BRESEQ_OPTIONS -j "$THREADS" "${f}"/"$fastq_name"*.f*q* -o "${o}"/output/analysis/"$fastq_name" &>> "${o}"/log/"$fastq_name""_breseq.log"
+                rm "${o}"/log/"$fastq_name""_breseq.log"
+            fi
+
+            echo -e "*-------------------- MAKE REPORT\n"
+            # Run python script to report percent of reads of interest aligned, according to the treshold, into a table
+            python3 "$DIRSCRIPTS"/write_output_tables.py "$fastq_name" "${o}"/output/analysis/"$fastq_name"/output/summary.json "${o}"/output/evidence/refs.percents.txt "$THRESHOLD" --output_counts "${o}"/output/evidence/filterin.counts.txt
+        done
+fi
+
+
+### PAIRED-END
+if [ "${s}" == "pe" ]
+then
+    
+    for fastq_name in ${FASTQ_NAMES[@]}
+    	do 
+            echo -e "------------------  $fastq_name  ---------------------"
+
+            if [ ! -z "$REFINDEXED" ]
+            then
+                echo -e "*-------------------- FILTER OUT\n"
+                "$BOWTIE" -x "$REFINDEXED" -p "$THREADS" -1 "${f}"/"$fastq_name"_R1_paired.fastq.gz -2 "${f}"/"$fastq_name"_R2_paired.fastq.gz -U "${f}"/"$fastq_name"_R1_unpaired.fastq.gz,"${f}"/"$fastq_name"_R2_unpaired.fastq.gz -S "${o}"/tmp/"$fastq_name"_aligned_against_genome.sam --un-gz "${o}"/output/data/"$fastq_name".unpaired.fq.gz --un-conc-gz "${o}"/output/data/"$fastq_name".paired.fq.gz &>> "${o}"/log/"$fastq_name""_bowtie2.log"
+                rm "${o}"/tmp/*
+
+                echo -e "*-------------------- FILTER IN\n"
+                "$BRESEQ" -r "$DIRDATA"/"${v}"* $BRESEQ_OPTIONS -j "$THREADS" "${o}"/output/data/"$fastq_name".paired.fq.1.gz "${o}"/output/data/"$fastq_name".paired.fq.2.gz "${o}"/output/data/"$fastq_name".unpaired.fq.gz -o "${o}"/output/analysis/"$fastq_name" &>> "${o}"/log/"$fastq_name""_breseq.log"
+                rm "${o}"/log/"$fastq_name""_breseq.log"
+            else
+                echo -e "*-------------------- FILTER IN\n"
+                "$BRESEQ" -r "$DIRDATA"/"${v}"* $BRESEQ_OPTIONS -j "$THREADS" "${f}"/"$fastq_name"_R1_paired.fastq.gz "${f}"/"$fastq_name"_R2_paired.fastq.gz "${f}"/"$fastq_name"*_R1_unpaired.fastq.gz "${f}"/"$fastq_name"_R2_unpaired.fastq.gz -o "${o}"/output/analysis/"$fastq_name" &>> "${o}"/log/"$fastq_name""_breseq.log"
+                rm "${o}"/log/"$fastq_name""_breseq.log"
+            fi
+
+            echo -e "*-------------------- MAKE REPORT\n"
+            python3 "$DIRSCRIPTS"/write_output_tables.py "$fastq_name" "${o}"/output/analysis/"$fastq_name"/output/summary.json "${o}"/output/evidence/refs.percents.txt "$THRESHOLD" --output_counts "${o}"/output/evidence/filterin.counts.txt
+        done
+fi
+
+# Remove tmp directory
+rm -r "${o}"/tmp/
