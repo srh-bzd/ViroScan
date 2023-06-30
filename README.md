@@ -80,7 +80,7 @@ To launch the tool, type the following command in the local directory where the 
 ### Usage
 
 ```bash
-./ViroScan [-h] -f <fastq_directory> -v <virus> -s <se|pe> -o <output_directory> [-x <reference_filter_out>] [-p <threads>] [-b <\"breseq_options\">] [-t <threshold>]
+./ViroScan [-h] -f <fastq_directory> -v <virus> -s <se|pe> -o <output_directory> [-x <reference_filter_out>] [-u <1|2>] [-p <threads>] [-b <\"breseq_options\">] [-t <threshold>]
 ```
 
 ### Parameters
