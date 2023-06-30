@@ -57,7 +57,8 @@ Knowing the type of virus present in a sample is essential for certain types of 
   - Python3 (https://www.python.org/downloads/)
   - R (https://www.r-project.org/)
   - breseq (https://barricklab.org/twiki/pub/Lab/ToolsBacterialGenomeResequencing/documentation/)
-    NB : Bowtie2 and R are used by breseq
+  
+  NB : Bowtie2 and R are used by breseq
 
 - Data :
 
@@ -105,7 +106,7 @@ To launch the tool, type the following command in the local directory where the 
 
 | Parameter | Type    | Description                                                  |
 | --------- | ------- | ------------------------------------------------------------ |
-| -f        | String  | Path of the FASTQ file(s) to analyse. In case of paired-end, make sure your files have '_R1*paired',  '_R2*paired', '_R1*unpaired' '_R2*unpaired' patterns. The underscore is essential. '.fastq', '.fq' and '.gz' extensions are accepted |
+| -f        | String  | Path of the FASTQ file(s) to analyse. In case of paired-end, make sure your files have '_R1\*paired',  '_R2\*paired', '_R1\*unpaired' '_R2\*unpaired' patterns. The underscore is essential. '.fastq', '.fq' and '.gz' extensions are accepted |
 | -v        | String  | Virus to use to find the closest viral sequence. Available : adenoviridae, adomavirus, anelloviridae, circoviridae, herpesvirales, papillomavirus, parvoviridae, polyomavirus. If you want to use your own viral sequences, add a '.gbk' file (Genbank format) into the data directory. Make sure that the name is 'virus.gbk'. You can zip it to limit the space used. In this case, the name of the zip file must be 'virus.gbk.zip' |
 | -s        | String  | Single-end or paired-end data to analyse                     |
 | -o        | String  | Path of the output directory where results will be written. If the directory doesn't exist, it will be created |
@@ -130,6 +131,9 @@ To launch the tool, type the following command in the local directory where the 
 ## Author
 
 Sarah BOUZIDI,
+
 Engineer in bioinformatics
+
 Centre National de la Recherche Scientifique (CNRS)
-Team Virostyle, Laboratory MIVEGEC, IRD, Montpellier
+
+Team [Virostyle](https://virostyle.cnrs.fr/), Laboratory MIVEGEC, IRD, Montpellier
