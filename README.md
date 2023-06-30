@@ -19,10 +19,10 @@ flowchart TD
 ```
 
 
-## Table des matières
+## Table of contents
 
 - [ViroScan](#ViroScan)
-  * [Table of content](#table-of-content)
+  * [Table of contents](#table-of-contents)
   * [Context](#context)
   * [To start](#to-start)
     + [Prerequisite](#Prerequisite)
