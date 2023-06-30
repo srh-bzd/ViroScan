@@ -14,12 +14,16 @@ ViroScan is an automated pipeline that eliminate reads according to a reference 
   * [Starting up and using](#starting-up-and-using)
     + [Usage](#usage)
     + [Parameters](#parameters)
+      + [Mandatory options](#mandatory-options)
+      + [Supplementary options](#supplementary-options)
   * [Made with](#made-with)
   * [Author](#author)
+
 
 ## Context
 
 Knowing the type of virus present in a sample is essential for certain types of research. In the case of papillomaviruses, a DEIA and LIPA combination is often carried out on the bench to determine whether or not HPVs are present and then to type the sample. However, this approach has certain limitations, notably the financial cost, the time required and the range of HPVs that can be detected. With ViroScan, we are trying to overcome these limitations and make more.
+
 
 ## To start
 
@@ -70,9 +74,8 @@ chmod +x ./ViroScan
 To launch the tool, type the following command in the local directory where the script is located `ViroScan`
 
 ```bash
-./ViroScan
+./ViroScan -h
 ```
-
 
 ### Usage
 
@@ -82,13 +85,21 @@ To launch the tool, type the following command in the local directory where the 
 
 ### Parameters
 
+#### Mandatory options
+
 | Parameter | Type    | Description                                                  |
 | --------- | ------- | ------------------------------------------------------------ |
-| -f        | String  | Path of the FASTQ file(s) to analyse. In case of paired-end, make sure your files have '_R1_paired.fastq.gz', '_R2_paired.fastq.gz', '_R1_unpaired.fastq.gz', '_R2_unpaired.fastq.gz'. In case of single-end, '.fastq', '.fq' and '.gz' extensions are accepted |
-| -v        | String  | Virus to use to find the closest viral sequence. Available : adenoviridae, adomavirus, anelloviridae, circoviridae, herpesvirales, papillomavirus, parvoviridae, polyomavirus. If you want to use your own viral sequence, add a '.gbk' file into the data directory |
+| -f        | String  | Path of the FASTQ file(s) to analyse. In case of paired-end, make sure your files have '_R1*paired',  '_R2*paired', '_R1*unpaired' '_R2*unpaired' patterns. The underscore is essential. '.fastq', '.fq' and '.gz' extensions are accepted |
+| -v        | String  | Virus to use to find the closest viral sequence. Available : adenoviridae, adomavirus, anelloviridae, circoviridae, herpesvirales, papillomavirus, parvoviridae, polyomavirus. If you want to use your own viral sequences, add a '.gbk' file (Genbank format) into the data directory. Make sure that the name is 'virus.gbk'. You can zip it to limit the space used. In this case, the name of the zip file must be 'virus.gbk.zip' |
 | -s        | String  | Single-end or paired-end data to analyse                     |
 | -o        | String  | Path of the output directory where results will be written. If the directory doesn't exist, it will be created |
+
+#### Supplementary options
+
+| Parameter | Type    | Description                                                  |
+| --------- | ------- | ------------------------------------------------------------ |
 | -x        | String  | Path of reference indexed and the pattern name of indexes to perform filter out. Make sure the reference was indexed by Bowtie. So, it's means files have to finished by '.bt2' |
+| -u        | Integer | Number of unpaired files. Default 2                          |
 | -p        | Integer | Number of threads to use. Default 1                          |
 | -b        | String  | breseq options. Default \"-p -t\". Make sure if you want to change default options to input the value with quotation marks. Warning : Do not inform option -j |
 | -t        | Integer | Threshold value of the minimum alignment percentage to report. Default 5 |
