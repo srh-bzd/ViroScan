@@ -3,18 +3,18 @@
 ViroScan is an automated pipeline that eliminate reads according to a reference (filter out), retain only viral reads (filter in) and determine the percentage of provenance among a set of viral genomes
 
 ```mermaid
+---
+title: Workflow of ViroScan
+---
 flowchart TD
-    A(["`Input reads to analyse 
-    (FASTQ)`"]) --> B{Filter out ?};
-    B -- fa:fa-ban No --> F{Filter in};
-    B -- fa:fa-thumbs-up Yes --> C[Align against reference];
-    D(["`Reference
-    (Bowtie2 idx)`"]) -.-> C;
-    C --> E(["`Reads of interest 
-    (FASTQ)`"]);
+    A([Input reads to analyse]) --> B{Filter out ?};
+    B -- No --> F{Filter in};
+    B -- Yes --> C[Align against reference];
+    D([Reference]) -.-> C;
+    C --> E([Reads of interest]);
     E --> F;
     F --> G[Align against virus];
-    H[(Database)] -.-> G;
+    H[(Viruses)] -.-> G;
     G --> I((Outputs));
 ```
 
