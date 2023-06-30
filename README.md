@@ -2,6 +2,13 @@
 
 ViroScan is an automated pipeline that eliminate reads according to a reference (filter out), retain only viral reads (filter in) and determine the percentage of provenance among a set of viral genomes
 
+```mermaid
+flowchart TD
+ A[Input reads] --> B{Filter out ?};
+ B -- |Yes| |Bowtie2| --> C[Reads unmapped against reference];
+ B -- |No|--> D{Filter in} |Breseq|;
+```
+
 
 ## Table des matières
 
