@@ -42,3 +42,6 @@ export THRESHOLD=5
 
 # Threads
 export THREADS=1
+
+# Number unpaired file
+export NBRUNPAIRED=2
