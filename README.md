@@ -1,6 +1,28 @@
 # ViroScan
 
+## Table of contents
+
+- [ViroScan](#ViroScan)
+  * [Table of contents](#table-of-contents)
+  * [Foreword](#foreword)
+  * [Context](#context)
+  * [Output](#output)
+  * [To start](#to-start)
+    + [Prerequisite](#Prerequisite)
+    + [Installation](#installation)
+  * [Starting up and using](#starting-up-and-using)
+    + [Usage](#usage)
+    + [Parameters](#parameters)
+      + [Mandatory options](#mandatory-options)
+      + [Supplementary options](#supplementary-options)
+  * [Made with](#made-with)
+  * [Author](#author)
+
+
+## Foreword
+
 ViroScan is an automated pipeline that eliminate reads according to a reference (filter out), retain only viral reads (filter in) and determine the percentage of provenance among a set of viral genomes
+
 
 ```mermaid
 ---
@@ -18,27 +40,51 @@ flowchart TD
     G --> I((Outputs));
 ```
 
-
-## Table of contents
-
-- [ViroScan](#ViroScan)
-  * [Table of contents](#table-of-contents)
-  * [Context](#context)
-  * [To start](#to-start)
-    + [Prerequisite](#Prerequisite)
-    + [Installation](#installation)
-  * [Starting up and using](#starting-up-and-using)
-    + [Usage](#usage)
-    + [Parameters](#parameters)
-      + [Mandatory options](#mandatory-options)
-      + [Supplementary options](#supplementary-options)
-  * [Made with](#made-with)
-  * [Author](#author)
-
-
 ## Context
 
 Knowing the type of virus present in a sample is essential for certain types of research. In the case of papillomaviruses, a DEIA and LIPA combination is often carried out on the bench to determine whether or not HPVs are present and then to type the sample. However, this approach has certain limitations, notably the financial cost, the time required and the range of HPVs that can be detected. With ViroScan, we are trying to overcome these limitations and make more.
+
+## Output
+
+ViroScan create 3 folders of output : 
+- data with the reads unmapped against the reference indexed during the step of filter-out
+- analysis with the output of breseq created during the step of filter-in
+- evidences with the reports filterin.counts.txt and refs.percents.txt
+
+Here an exemple of the report filterin.counts.txt
+
+```bash
+SAMPLE	NBR_LIKELY_VIRAL_READS	NBR_VIRAL_READS
+sample1 	 261604 	 170895
+sample2 	 968370 	 944474
+sample3 	 1150077 	 1113202
+sample4 	 1062478 	 1039411
+```
+and the report refs.percents.txt
+
+```bash
+SAMPLE	REFERENCE	PERCENT
+sample1 	 FM955841 	 16.3
+sample1 	 HPU31785 	 7.3
+sample1 	 PPH5CG 	 53.6
+sample1 	 X55965 	 22.0
+sample2 	 HPU31781 	 99.3
+sample3 	 FM955841 	 3.0
+sample3 	 HPU31785 	 2.1
+sample3 	 PPH5CG 	 30.5
+sample3 	 X55965 	 63.7
+sample4 	 HPU31781 	 99.3
+```
+
+Here a description of the fields
+
+| Field    | Description                                                  |
+| --------- | ------------------------------------------------------------ |
+| SAMPLE       | The name of sample analyse |
+| NBR_LIKELY_VIRAL_READS       | Number of the reads analyse into the step filter-in |
+| NBR_VIRAL_READS       | Number of the reads aligned against at least one Genbank reference |
+| REFERENCE       | The LOCUS name of the Genbank reference |
+| PERCENT       | The percent of reads aligned against the Genbank reference |
 
 
 ## To start
@@ -79,7 +125,13 @@ First of all, the git project must be cloned into your local directory
 git clone https://github.com/srh-bzd/ViroScan.git
 ```
 
-Then, in the local directory, authorise execution of the script `ViroScan`
+Then, move into the folder `ViroScan`
+
+```bash
+cd ViroScan/
+```
+
+Next, authorise execution of the script `ViroScan`
 
 ```bash
 chmod +x ./ViroScan
@@ -88,10 +140,10 @@ chmod +x ./ViroScan
 
 ## Starting up and using
 
-To launch the tool, type the following command in the local directory where the script is located `ViroScan`
+To launch the tool, type the following command in the local directory where the script `ViroScan` is located
 
 ```bash
-./ViroScan -h
+./ViroScan
 ```
 
 ### Usage
