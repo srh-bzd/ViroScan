@@ -327,7 +327,7 @@ header
 echo -e "\nViroScan : Start with the command-line :"
 if [ ! -z "$REFINDEXED" ]
 then
-    echo -e "$(dirname $0)/ViroScan -f ${f} -v ${v} -s ${s} -o ${o} -x ${REFINDEXED} -u ${NBRUNPAIRED}-p ${THREADS} -b \"${BRESEQ_OPTIONS}\" -t ${THRESHOLD}\n"
+    echo -e "$(dirname $0)/ViroScan -f ${f} -v ${v} -s ${s} -o ${o} -x ${REFINDEXED} -u ${NBRUNPAIRED} -p ${THREADS} -b \"${BRESEQ_OPTIONS}\" -t ${THRESHOLD}\n"
 else
     echo -e "$(dirname $0)/ViroScan -f ${f} -v ${v} -s ${s} -o ${o} -u ${NBRUNPAIRED} -p ${THREADS} -b \"${BRESEQ_OPTIONS}\" -t ${THRESHOLD}\n"
 fi
