@@ -426,8 +426,6 @@ then
                 echo -e "*-------------------- FILTER IN\n"
                 # Run breseq to aligned and analysed reads of interest, ie reads not aligned against the genome indexed
                 "$BRESEQ" -r "$DIRDATA"/"${v}".gbk $BRESEQ_OPTIONS -j "$THREADS" "${o}"/output/data/"$fastq_name".fq.gz -o "${o}"/output/analysis/"$fastq_name" &>> "${o}"/log/"$fastq_name""_breseq.log"
-                # Remove the stdout and stderr of breseq
-                rm "${o}"/log/"$fastq_name""_breseq.log"
             
             # If a filter-out step isn't launch
             else
@@ -485,7 +483,6 @@ then
                 echo -e "*-------------------- FILTER IN\n"
                 # Run breseq to aligned and analysed reads of interest, ie reads not aligned against the genome indexed
                 "$BRESEQ" -r "$DIRDATA"/"${v}".gbk $BRESEQ_OPTIONS -j "$THREADS" "${o}"/output/data/"$fastq_name".paired.fq.1.gz "${o}"/output/data/"$fastq_name".paired.fq.2.gz "${o}"/output/data/"$fastq_name".unpaired.fq.gz -o "${o}"/output/analysis/"$fastq_name" &>> "${o}"/log/"$fastq_name""_breseq.log"
-                rm "${o}"/log/"$fastq_name""_breseq.log"
             
             # If a filter-out step isn't launch
             else
@@ -499,8 +496,6 @@ then
                     echo -e "*-------------------- FILTER IN\n"
                     "$BRESEQ" -r "$DIRDATA"/"${v}".gbk $BRESEQ_OPTIONS -j "$THREADS" "$input_R1_paired_file" "$input_R2_paired_file" "$input_R1_unpaired_file" "$input_R2_unpaired_file" -o "${o}"/output/analysis/"$fastq_name" &>> "${o}"/log/"$fastq_name""_breseq.log"
                 fi 
-                # Remove the stdout and stderr of breseq   
-                rm "${o}"/log/"$fastq_name""_breseq.log"
             fi
 
             echo -e "*-------------------- MAKE REPORT\n"
