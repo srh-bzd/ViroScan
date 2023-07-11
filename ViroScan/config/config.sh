@@ -33,6 +33,7 @@ export REFINDEXED
 export BOWTIE=bowtie2
 export BRESEQ=breseq
 export GDTOOLS=gdtools
+export SAMTOOLS=samtools
 
 # breseq parameters
 export BRESEQ_OPTIONS="-p -t"
