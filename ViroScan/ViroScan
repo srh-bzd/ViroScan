@@ -17,6 +17,7 @@
             - Python3 (https://www.python.org/downloads/)
             - R (https://www.r-project.org/)
             - breseq (https://barricklab.org/twiki/pub/Lab/ToolsBacterialGenomeResequencing/documentation/)
+            - Samtools (http://www.htslib.org/)
             NB : Bowtie2 and R are used by breseq
         * Data :
             - Viruses references in Genbank format into the directory data
@@ -77,6 +78,7 @@ function usage(){
     printf "\t- Python3 (https://www.python.org/downloads/)\n"
     printf "\t- R (https://www.r-project.org/)\n"
     printf "\t- breseq (https://barricklab.org/twiki/pub/Lab/ToolsBacterialGenomeResequencing/documentation/)\n"
+    printf "\t- Samtools (http://www.htslib.org/)\n"
     
     printf "\nMandatory options :\n"
 	printf "\t-f                 : Path of the FASTQ file(s) to analyse. 
@@ -323,14 +325,19 @@ fi
 ########################################################################################
 
 # ViroScan "start" so print the header and the command-line used
+echo -e "\n================================================================================"
+
 header
+
 echo -e "\nViroScan : Start with the command-line :"
 if [ ! -z "$REFINDEXED" ]
 then
-    echo -e "$(dirname $0)/ViroScan -f ${f} -v ${v} -s ${s} -o ${o} -x ${REFINDEXED} -u ${NBRUNPAIRED} -p ${THREADS} -b \"${BRESEQ_OPTIONS}\" -t ${THRESHOLD}\n"
+    echo -e "$(dirname $0)/ViroScan -f ${f} -v ${v} -s ${s} -o ${o} -x ${REFINDEXED} -u ${NBRUNPAIRED} -p ${THREADS} -b \"${BRESEQ_OPTIONS}\" -t ${THRESHOLD}"
 else
-    echo -e "$(dirname $0)/ViroScan -f ${f} -v ${v} -s ${s} -o ${o} -u ${NBRUNPAIRED} -p ${THREADS} -b \"${BRESEQ_OPTIONS}\" -t ${THRESHOLD}\n"
+    echo -e "$(dirname $0)/ViroScan -f ${f} -v ${v} -s ${s} -o ${o} -u ${NBRUNPAIRED} -p ${THREADS} -b \"${BRESEQ_OPTIONS}\" -t ${THRESHOLD}"
 fi
+
+echo -e "\n================================================================================\n"
 
 
 ### REFERENCE
@@ -352,10 +359,12 @@ mkdir -p "${o}"/tmp
 
 # Create directory with tool's output and evidence into the output directory of results
 mkdir -p "${o}"/output
+mkdir -p "${o}"/output/data
 if [ ! -z "$REFINDEXED" ]
 then
-    mkdir -p "${o}"/output/data
+    mkdir -p "${o}"/output/data/filter_out
 fi
+mkdir -p "${o}"/output/data/filter_in
 mkdir -p "${o}"/output/evidence
 mkdir -p "${o}"/output/analysis
 
@@ -399,46 +408,58 @@ unset IFS
 #                                    ANALYSIS
 ########################################################################################
 
-# Print the header into the counts files
-echo -e "SAMPLE\tNBR_LIKELY_VIRAL_READS\tNBR_VIRAL_READS" > "${o}"/output/evidence/filterin.counts.txt
-echo -e "SAMPLE\tREFERENCE\tPERCENT" > "${o}"/output/evidence/refs.percents.txt
-
 ### SINGLE-END
 if [ "${s}" == "se" ]
 then
     
     for fastq_name in ${FASTQ_NAMES[@]}
-    	do 
-            echo -e "------------------  $fastq_name  ---------------------"
+    do 
 
-            # Retieve the path and the exact name of the input file 
-            inputfile=`find ${f} -type f -name "$fastq_name"*.f*q*`
-            
-            # If a filter-out step is launch
-            if [ ! -z "$REFINDEXED" ]
-            then
-                echo -e "*-------------------- FILTER OUT\n"
-                # Run Bowtie2 to aligned input reads against the genome indexed
-                "$BOWTIE" -x "$REFINDEXED" -p "$THREADS" -U "$inputfile" -S "${o}"/tmp/"$fastq_name"_aligned_against_genome.sam --un-gz "${o}"/output/data/"$fastq_name".fq.gz &>> "${o}"/log/"$fastq_name""_bowtie2.log"
-                # Remove SAM file into the tmp directory
-                rm "${o}"/tmp/*
+        echo -e "\n------------------  $fastq_name  ---------------------"
+        
+        # Retieve the path and the exact name of the input file 
+        inputfile=`find ${f} -type f -name "$fastq_name"*.f*q*`
+        
+        # If a filter-out step is launch
+        if [ ! -z "$REFINDEXED" ]
+        then
+            echo -e "*-------------------- FILTER OUT\n"
+            # Run Bowtie2 to aligned input reads against the genome indexed
+            "$BOWTIE" -x "$REFINDEXED" -p "$THREADS" -U "$inputfile" -S "${o}"/tmp/"$fastq_name"_aligned_against_genome.sam --un-gz "${o}"/output/data/filter_out/"$fastq_name".fq.gz &>> "${o}"/log/"$fastq_name""_bowtie2.log"
+            # Remove SAM file into the tmp directory
+            rm "${o}"/tmp/*
+            echo -e "*-------------------- FILTER IN\n"
+            # Run breseq to aligned and analysed reads of interest, ie reads not aligned against the genome indexed
+            "$BRESEQ" -r "$DIRDATA"/"${v}".gbk $BRESEQ_OPTIONS -j "$THREADS" "${o}"/output/data/filter_out/"$fastq_name".fq.gz -o "${o}"/output/analysis/"$fastq_name" &>> "${o}"/log/"$fastq_name""_breseq.log"
+        
+        # If a filter-out step isn't launch
+        else
+            echo -e "*-------------------- FILTER IN\n"
+            # Run breseq to aligned and analysed reads
+            "$BRESEQ" -r "$DIRDATA"/"${v}".gbk $BRESEQ_OPTIONS -j "$THREADS" "$inputfile" -o "${o}"/output/analysis/"$fastq_name" &>> "${o}"/log/"$fastq_name""_breseq.log"
+        fi
+        
+        echo -e "*-------------------- MAKE REPORTS\n"
+        # Run python script to report percent of reads of interest aligned, according to the treshold, into a table and the number of reads input aligned
+        python3 "$DIRSCRIPTS"/write_output_tables.py "$fastq_name" "${o}"/output/analysis/"$fastq_name"/output/summary.json "${o}"/output/evidence/refs.percents.txt "$THRESHOLD" --output_counts "${o}"/output/evidence/filterin.counts.txt
+    
+    done
+    
+    echo -e "*-------------------- RETRIEVE VIRAL READS\n"
+    # For each line from the file refs.percents.txt where there are samples and references detected
+    while IFS=$'\t' read -r sample reference percent
+    do
+        # Run samtools to retrieve from sample reads aligned against reference   
+        "$SAMTOOLS" view "${o}"/output/analysis/"$sample"/data/reference.bam "$reference" > "${o}"/tmp/"$sample"_"$reference".sam
+        # Retrieve reads aligned and save them into a fastq file
+        cat "${o}"/tmp/"$sample"_"$reference".sam | grep -v ^@ | awk 'NR%2==1 {print "@"$1"_1\n"$10"\n+\n"$11}' > "${o}"/output/data/filter_in/"$sample"_"$reference".fastq
+        rm "${o}"/tmp/"$sample"_"$reference".sam
+    done < "${o}"/output/evidence/refs.percents.txt
 
-                echo -e "*-------------------- FILTER IN\n"
-                # Run breseq to aligned and analysed reads of interest, ie reads not aligned against the genome indexed
-                "$BRESEQ" -r "$DIRDATA"/"${v}".gbk $BRESEQ_OPTIONS -j "$THREADS" "${o}"/output/data/"$fastq_name".fq.gz -o "${o}"/output/analysis/"$fastq_name" &>> "${o}"/log/"$fastq_name""_breseq.log"
-            
-            # If a filter-out step isn't launch
-            else
-                echo -e "*-------------------- FILTER IN\n"
-                # Run breseq to aligned and analysed reads
-                "$BRESEQ" -r "$DIRDATA"/"${v}".gbk $BRESEQ_OPTIONS -j "$THREADS" "$inputfile" -o "${o}"/output/analysis/"$fastq_name" &>> "${o}"/log/"$fastq_name""_breseq.log"
-                rm "${o}"/log/"$fastq_name""_breseq.log"
-            fi
+    # To finalize, add the report to report files
+    sed -i '1 i\SAMPLE\tNBR_READS_TO_ALIGNED\tNBR_VIRAL_READS' "${o}"/output/evidence/filterin.counts.txt
+    sed -i '1 i\SAMPLE\tREFERENCE\tPERCENT' "${o}"/output/evidence/refs.percents.txt 
 
-            echo -e "*-------------------- MAKE REPORT\n"
-            # Run python script to report percent of reads of interest aligned, according to the treshold, into a table and the number of reads input aligned
-            python3 "$DIRSCRIPTS"/write_output_tables.py "$fastq_name" "${o}"/output/analysis/"$fastq_name"/output/summary.json "${o}"/output/evidence/refs.percents.txt "$THRESHOLD" --output_counts "${o}"/output/evidence/filterin.counts.txt
-        done
 fi
 
 
@@ -447,61 +468,80 @@ if [ "${s}" == "pe" ]
 then
     
     for fastq_name in ${FASTQ_NAMES[@]}
-    	do 
-            echo -e "------------------  $fastq_name  ---------------------"
+    do 
 
-            # Retieve the path and the exact name of the input files paired
-            input_R1_paired_file=`find ${f} -type f \( -name "$fastq_name"*R1*paired*.f*q* ! -name "$fastq_name"*R1*unpaired*.f*q* \)`
-            input_R2_paired_file=`find ${f} -type f \( -name "$fastq_name"*R2*paired*.f*q* ! -name "$fastq_name"*R2*unpaired*.f*q* \)`
-            # Retrieve the path and the exact name of the input file(s) unpaired
+        echo -e "\n------------------  $fastq_name  ---------------------"
+        
+        # Retieve the path and the exact name of the input files paired
+        input_R1_paired_file=`find ${f} -type f \( -name "$fastq_name"*R1*paired*.f*q* ! -name "$fastq_name"*R1*unpaired*.f*q* \)`
+        input_R2_paired_file=`find ${f} -type f \( -name "$fastq_name"*R2*paired*.f*q* ! -name "$fastq_name"*R2*unpaired*.f*q* \)`
+        # Retrieve the path and the exact name of the input file(s) unpaired
+        if [ "$NBRUNPAIRED" == 1 ]
+        then
+            input_unpaired_file=`find ${f} -type f -name "$fastq_name"*unpaired*.f*q*`
+        else
+            input_R1_unpaired_file=`find ${f} -type f -name "$fastq_name"*R1*unpaired*.f*q*`
+            input_R2_unpaired_file=`find ${f} -type f -name "$fastq_name"*R2*unpaired*.f*q*`
+        fi
+        
+        #If a filter-out step is launch
+        if [ ! -z "$REFINDEXED" ]
+        then
+            # In case of only one unpaired file
             if [ "$NBRUNPAIRED" == 1 ]
             then
-                input_unpaired_file=`find ${f} -type f -name "$fastq_name"*unpaired*.f*q*`
-            else
-                input_R1_unpaired_file=`find ${f} -type f -name "$fastq_name"*R1*unpaired*.f*q*`
-                input_R2_unpaired_file=`find ${f} -type f -name "$fastq_name"*R2*unpaired*.f*q*`
-            fi
-
-            # If a filter-out step is launch
-            if [ ! -z "$REFINDEXED" ]
-            then
-                # In case of only one unpaired file
-                if [ "$NBRUNPAIRED" == 1 ]
-                then
-                    echo -e "*-------------------- FILTER OUT\n"
-                    # Run Bowtie2 to aligned input reads against the genome indexed
-                    "$BOWTIE" -x "$REFINDEXED" -p "$THREADS" -1 "$input_R1_paired_file" -2 "$input_R2_paired_file" -U "$input_unpaired_file" -S "${o}"/tmp/"$fastq_name"_aligned_against_genome.sam --un-gz "${o}"/output/data/"$fastq_name".unpaired.fq.gz --un-conc-gz "${o}"/output/data/"$fastq_name".paired.fq.gz &>> "${o}"/log/"$fastq_name""_bowtie2.log"
-                
-                # In case of only two unpaired files
-                else
-                    echo -e "*-------------------- FILTER OUT\n"
-                    "$BOWTIE" -x "$REFINDEXED" -p "$THREADS" -1 "$input_R1_paired_file" -2 "$input_R2_paired_file" -U "$input_R1_unpaired_file","$input_R2_unpaired_file" -S "${o}"/tmp/"$fastq_name"_aligned_against_genome.sam --un-gz "${o}"/output/data/"$fastq_name".unpaired.fq.gz --un-conc-gz "${o}"/output/data/"$fastq_name".paired.fq.gz &>> "${o}"/log/"$fastq_name""_bowtie2.log"
-                fi
-                # Remove SAM file into the tmp directory
-                rm "${o}"/tmp/*
-
-                echo -e "*-------------------- FILTER IN\n"
-                # Run breseq to aligned and analysed reads of interest, ie reads not aligned against the genome indexed
-                "$BRESEQ" -r "$DIRDATA"/"${v}".gbk $BRESEQ_OPTIONS -j "$THREADS" "${o}"/output/data/"$fastq_name".paired.fq.1.gz "${o}"/output/data/"$fastq_name".paired.fq.2.gz "${o}"/output/data/"$fastq_name".unpaired.fq.gz -o "${o}"/output/analysis/"$fastq_name" &>> "${o}"/log/"$fastq_name""_breseq.log"
+                echo -e "*-------------------- FILTER OUT\n"
+                # Run Bowtie2 to aligned input reads against the genome indexed
+                "$BOWTIE" -x "$REFINDEXED" -p "$THREADS" -1 "$input_R1_paired_file" -2 "$input_R2_paired_file" -U "$input_unpaired_file" -S "${o}"/tmp/"$fastq_name"_aligned_against_genome.sam --un-gz "${o}"/output/data/filter_out/"$fastq_name".unpaired.fq.gz --un-conc-gz "${o}"/output/data/filter_out/"$fastq_name"_R%.paired.fq.gz &>> "${o}"/log/"$fastq_name""_bowtie2.log"
             
-            # If a filter-out step isn't launch
+            # In case of two unpaired files
             else
-                # In case of only one unpaired file
-                if [ "$NBRUNPAIRED" == 1 ]
-                then
-                    echo -e "*-------------------- FILTER IN\n"
-                    # Run breseq to aligned and analysed reads
-                    "$BRESEQ" -r "$DIRDATA"/"${v}".gbk $BRESEQ_OPTIONS -j "$THREADS" "$input_R1_paired_file" "$input_R2_paired_file" "$input_unpaired_file" -o "${o}"/output/analysis/"$fastq_name" &>> "${o}"/log/"$fastq_name""_breseq.log"
-                else
-                    echo -e "*-------------------- FILTER IN\n"
-                    "$BRESEQ" -r "$DIRDATA"/"${v}".gbk $BRESEQ_OPTIONS -j "$THREADS" "$input_R1_paired_file" "$input_R2_paired_file" "$input_R1_unpaired_file" "$input_R2_unpaired_file" -o "${o}"/output/analysis/"$fastq_name" &>> "${o}"/log/"$fastq_name""_breseq.log"
-                fi 
+                echo -e "*-------------------- FILTER OUT\n"
+                "$BOWTIE" -x "$REFINDEXED" -p "$THREADS" -1 "$input_R1_paired_file" -2 "$input_R2_paired_file" -U "$input_R1_unpaired_file","$input_R2_unpaired_file" -S "${o}"/tmp/"$fastq_name"_aligned_against_genome.sam --un-gz "${o}"/output/data/filter_out/"$fastq_name".unpaired.fq.gz --un-conc-gz "${o}"/output/data/filter_out/"$fastq_name"_R%.paired.fq.gz &>> "${o}"/log/"$fastq_name""_bowtie2.log"
             fi
 
-            echo -e "*-------------------- MAKE REPORT\n"
-            # Run python script to report percent of reads of interest aligned, according to the treshold, into a table and the number of reads input aligned
-            python3 "$DIRSCRIPTS"/write_output_tables.py "$fastq_name" "${o}"/output/analysis/"$fastq_name"/output/summary.json "${o}"/output/evidence/refs.percents.txt "$THRESHOLD" --output_counts "${o}"/output/evidence/filterin.counts.txt
-        done
+            # Remove SAM file into the tmp directory
+            rm "${o}"/tmp/*
+            echo -e "*-------------------- FILTER IN\n"
+            # Run breseq to aligned and analysed reads of interest, ie reads not aligned against the reference genome indexed
+            "$BRESEQ" -r "$DIRDATA"/"${v}".gbk $BRESEQ_OPTIONS -j "$THREADS" "${o}"/output/data/filter_out/"$fastq_name"_R1.paired.fq.gz "${o}"/output/data/filter_out/"$fastq_name"_R2.paired.fq.gz "${o}"/output/data/filter_out/"$fastq_name".unpaired.fq.gz -o "${o}"/output/analysis/"$fastq_name" &>> "${o}"/log/"$fastq_name""_breseq.log"
+        
+        # If a filter-out step isn't launch
+        else
+            # In case of only one unpaired file
+            if [ "$NBRUNPAIRED" == 1 ]
+            then
+                echo -e "*-------------------- FILTER IN\n"
+                # Run breseq to aligned and analysed reads
+                "$BRESEQ" -r "$DIRDATA"/"${v}".gbk $BRESEQ_OPTIONS -j "$THREADS" "$input_R1_paired_file" "$input_R2_paired_file" "$input_unpaired_file" -o "${o}"/output/analysis/"$fastq_name" &>> "${o}"/log/"$fastq_name""_breseq.log"
+            
+            # In case of two unpaired files
+            else
+                echo -e "*-------------------- FILTER IN\n"
+                "$BRESEQ" -r "$DIRDATA"/"${v}".gbk $BRESEQ_OPTIONS -j "$THREADS" "$input_R1_paired_file" "$input_R2_paired_file" "$input_R1_unpaired_file" "$input_R2_unpaired_file" -o "${o}"/output/analysis/"$fastq_name" &>> "${o}"/log/"$fastq_name""_breseq.log"
+            fi 
+        fi
+
+        echo -e "*-------------------- MAKE REPORTS\n"
+        # Run python script to report percent of reads of interest aligned, according to the treshold, into a table and the number of reads input aligned
+        python3 "$DIRSCRIPTS"/write_output_tables.py "$fastq_name" "${o}"/output/analysis/"$fastq_name"/output/summary.json "${o}"/output/evidence/refs.percents.txt "$THRESHOLD" --output_counts "${o}"/output/evidence/filterin.counts.txt
+
+    done
+
+    echo -e "*-------------------- RETRIEVE VIRAL READS\n"
+    # For each line from the file refs.percents.txt where there are samples and references detected
+    while IFS=$'\t' read -r sample reference percent
+    do
+        # Run samtools to retrieve from sample reads aligned against reference   
+        "$SAMTOOLS" view "${o}"/output/analysis/"$sample"/data/reference.bam "$reference" > "${o}"/tmp/"$sample"_"$reference".sam
+        # Retrieve reads aligned and save them into a fastq file
+        cat "${o}"/tmp/"$sample"_"$reference".sam | grep -v ^@ | awk 'NR%2==1 {print "@"$1"_1\n"$10"\n+\n"$11}' > "${o}"/output/data/filter_in/"$sample"_"$reference".fastq
+        rm "${o}"/tmp/"$sample"_"$reference".sam
+    done < "${o}"/output/evidence/refs.percents.txt
+
+    # To finalize, add the report to report files
+    sed -i '1 i\SAMPLE\tNBR_READS_TO_ALIGNED\tNBR_VIRAL_READS' "${o}"/output/evidence/filterin.counts.txt
+    sed -i '1 i\SAMPLE\tREFERENCE\tPERCENT' "${o}"/output/evidence/refs.percents.txt 
 fi
 
 # Remove tmp directory
