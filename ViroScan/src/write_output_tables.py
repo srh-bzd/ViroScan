@@ -56,10 +56,10 @@ def write_results(nbrTotInputReads, nbrTotMappedReads, dictPercentMappedReadsRef
     reads per references according to the threshold
     """
     # Counts
-    print(sample,"\t",nbrTotInputReads,"\t",nbrTotMappedReads, file=output_counts)
+    print(str(sample)+"\t"+str(nbrTotInputReads)+"\t"+str(nbrTotMappedReads), file=output_counts)
     # Table
     for ref in dictPercentMappedReadsRefsSort:
-        print(sample, "\t", ref, "\t", dictPercentMappedReadsRefsSort[ref], file=output_file)
+        print(str(sample)+"\t"+str(ref)+"\t"+str(dictPercentMappedReadsRefsSort[ref]), file=output_file)
 
 
 
