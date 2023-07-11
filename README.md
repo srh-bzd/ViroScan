@@ -47,7 +47,7 @@ Knowing the type of virus present in a sample is essential for certain types of 
 ## Output
 
 ViroScan create 3 folders of output : 
-- data with the reads unmapped against the reference indexed during the step of filter-out
+- data with the reads unmapped against the reference indexed during the step of filter-out and the reads mapped against viruses during the step of filter-in
 - analysis with the output of breseq created during the step of filter-in
 - evidences with the reports filterin.counts.txt and refs.percents.txt
 
@@ -81,7 +81,7 @@ Here a description of the fields
 | Field    | Description                                                  |
 | --------- | ------------------------------------------------------------ |
 | SAMPLE       | The name of sample analyse |
-| NBR_LIKELY_VIRAL_READS       | Number of the reads analyse into the step filter-in |
+| NBR_READS_TO_ALIGNED       | Number of the reads analyse into the step filter-in |
 | NBR_VIRAL_READS       | Number of the reads aligned against at least one Genbank reference |
 | REFERENCE       | The LOCUS name of the Genbank reference |
 | PERCENT       | The percent of reads aligned against the Genbank reference |
@@ -103,6 +103,7 @@ Here a description of the fields
   - Python3 (https://www.python.org/downloads/)
   - R (https://www.r-project.org/)
   - breseq (https://barricklab.org/twiki/pub/Lab/ToolsBacterialGenomeResequencing/documentation/)
+  - Samtools (http://www.htslib.org/)
   
   NB : Bowtie2 and R are used by breseq
 
