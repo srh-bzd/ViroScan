@@ -363,6 +363,8 @@ mkdir -p "${o}"/output/data
 if [ ! -z "$REFINDEXED" ]
 then
     mkdir -p "${o}"/output/data/filter_out
+    mkdir -p "${o}"/output/data/filter_out/matched
+    mkdir -p "${o}"/output/data/filter_out/unmatched
 fi
 mkdir -p "${o}"/output/data/filter_in
 mkdir -p "${o}"/output/evidence
@@ -425,12 +427,12 @@ then
         then
             echo -e "*-------------------- FILTER OUT\n"
             # Run Bowtie2 to aligned input reads against the genome indexed
-            "$BOWTIE" -x "$REFINDEXED" -p "$THREADS" -U "$inputfile" -S "${o}"/tmp/"$fastq_name"_aligned_against_genome.sam --un-gz "${o}"/output/data/filter_out/"$fastq_name".fq.gz &>> "${o}"/log/"$fastq_name""_bowtie2.log"
+            "$BOWTIE" -x "$REFINDEXED" -p "$THREADS" -U "$inputfile" -S "${o}"/tmp/"$fastq_name"_aligned_against_genome.sam --al-gz "${o}"/output/data/filter_out/matched/"$fastq_name".fq.gz --un-gz "${o}"/output/data/filter_out/unmatched/"$fastq_name".fq.gz &>> "${o}"/log/"$fastq_name""_bowtie2.log"
             # Remove SAM file into the tmp directory
             rm "${o}"/tmp/*
             echo -e "*-------------------- FILTER IN\n"
             # Run breseq to aligned and analysed reads of interest, ie reads not aligned against the genome indexed
-            "$BRESEQ" -r "$DIRDATA"/"${v}".gbk $BRESEQ_OPTIONS -j "$THREADS" "${o}"/output/data/filter_out/"$fastq_name".fq.gz -o "${o}"/output/analysis/"$fastq_name" &>> "${o}"/log/"$fastq_name""_breseq.log"
+            "$BRESEQ" -r "$DIRDATA"/"${v}".gbk $BRESEQ_OPTIONS -j "$THREADS" "${o}"/output/data/filter_out/unmatched/"$fastq_name".fq.gz -o "${o}"/output/analysis/"$fastq_name" &>> "${o}"/log/"$fastq_name""_breseq.log"
         
         # If a filter-out step isn't launch
         else
@@ -492,19 +494,19 @@ then
             then
                 echo -e "*-------------------- FILTER OUT\n"
                 # Run Bowtie2 to aligned input reads against the genome indexed
-                "$BOWTIE" -x "$REFINDEXED" -p "$THREADS" -1 "$input_R1_paired_file" -2 "$input_R2_paired_file" -U "$input_unpaired_file" -S "${o}"/tmp/"$fastq_name"_aligned_against_genome.sam --un-gz "${o}"/output/data/filter_out/"$fastq_name".unpaired.fq.gz --un-conc-gz "${o}"/output/data/filter_out/"$fastq_name"_R%.paired.fq.gz &>> "${o}"/log/"$fastq_name""_bowtie2.log"
+                "$BOWTIE" -x "$REFINDEXED" -p "$THREADS" -1 "$input_R1_paired_file" -2 "$input_R2_paired_file" -U "$input_unpaired_file" -S "${o}"/tmp/"$fastq_name"_aligned_against_genome.sam --al-gz "${o}"/output/data/filter_out/matched/"$fastq_name".unpaired.fq.gz --un-gz "${o}"/output/data/filter_out/unmatched/"$fastq_name".unpaired.fq.gz --al-conc-gz "${o}"/output/data/filter_out/matched/"$fastq_name"_R%.paired.fq.gz --un-conc-gz "${o}"/output/data/filter_out/unmatched/"$fastq_name"_R%.paired.fq.gz &>> "${o}"/log/"$fastq_name""_bowtie2.log"
             
             # In case of two unpaired files
             else
                 echo -e "*-------------------- FILTER OUT\n"
-                "$BOWTIE" -x "$REFINDEXED" -p "$THREADS" -1 "$input_R1_paired_file" -2 "$input_R2_paired_file" -U "$input_R1_unpaired_file","$input_R2_unpaired_file" -S "${o}"/tmp/"$fastq_name"_aligned_against_genome.sam --un-gz "${o}"/output/data/filter_out/"$fastq_name".unpaired.fq.gz --un-conc-gz "${o}"/output/data/filter_out/"$fastq_name"_R%.paired.fq.gz &>> "${o}"/log/"$fastq_name""_bowtie2.log"
+                "$BOWTIE" -x "$REFINDEXED" -p "$THREADS" -1 "$input_R1_paired_file" -2 "$input_R2_paired_file" -U "$input_R1_unpaired_file","$input_R2_unpaired_file" -S "${o}"/tmp/"$fastq_name"_aligned_against_genome.sam --al-gz "${o}"/output/data/filter_out/matched/"$fastq_name".unpaired.fq.gz --un-gz "${o}"/output/data/filter_out/unmatched/"$fastq_name".unpaired.fq.gz --al-conc-gz "${o}"/output/data/filter_out/matched/"$fastq_name"_R%.paired.fq.gz --un-conc-gz "${o}"/output/data/filter_out/unmatched/"$fastq_name"_R%.paired.fq.gz &>> "${o}"/log/"$fastq_name""_bowtie2.log"
             fi
 
             # Remove SAM file into the tmp directory
             rm "${o}"/tmp/*
             echo -e "*-------------------- FILTER IN\n"
             # Run breseq to aligned and analysed reads of interest, ie reads not aligned against the reference genome indexed
-            "$BRESEQ" -r "$DIRDATA"/"${v}".gbk $BRESEQ_OPTIONS -j "$THREADS" "${o}"/output/data/filter_out/"$fastq_name"_R1.paired.fq.gz "${o}"/output/data/filter_out/"$fastq_name"_R2.paired.fq.gz "${o}"/output/data/filter_out/"$fastq_name".unpaired.fq.gz -o "${o}"/output/analysis/"$fastq_name" &>> "${o}"/log/"$fastq_name""_breseq.log"
+            "$BRESEQ" -r "$DIRDATA"/"${v}".gbk $BRESEQ_OPTIONS -j "$THREADS" "${o}"/output/data/filter_out/unmatched/"$fastq_name"_R1.paired.fq.gz "${o}"/output/data/filter_out/unmatched/"$fastq_name"_R2.paired.fq.gz "${o}"/output/data/filter_out/unmatched/"$fastq_name".unpaired.fq.gz -o "${o}"/output/analysis/"$fastq_name" &>> "${o}"/log/"$fastq_name""_breseq.log"
         
         # If a filter-out step isn't launch
         else
