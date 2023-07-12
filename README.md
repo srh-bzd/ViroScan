@@ -51,6 +51,18 @@ ViroScan create 1 folder `log` and 3 folders of `output` :
 - `analysis` with the output of breseq created during the step of filter-in
 - `evidences` with the reports `filterin.counts.txt` and `refs.percents.txt`
 
+```bash
+|_ log
+|_ output
+      |_ analysis
+      |_ data
+           |_ filter_out
+                  |_ matched
+                  |_ unmatched
+           |_ filter_in
+      |_ evidence
+```
+
 Here an exemple of the report filterin.counts.txt
 
 ```bash
