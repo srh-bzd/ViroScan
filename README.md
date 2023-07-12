@@ -49,7 +49,7 @@ Knowing the type of virus present in a sample is essential for certain types of 
 ViroScan create 1 folder `log` and 3 folders of `output` : 
 - `data` with the reads mapped and unmapped against the reference indexed during the step of filter-out (in order `data/filter_out/matched` and `data/filter_out/unmatched`) and the reads mapped against viruses during the step of filter-in (`data/filter_in`)
 - `analysis` with the output of breseq created during the step of filter-in
-- `evidences` with the reports filterin.counts.txt and refs.percents.txt
+- `evidences` with the reports `filterin.counts.txt` and `refs.percents.txt`
 
 Here an exemple of the report filterin.counts.txt
 
