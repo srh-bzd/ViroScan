@@ -564,4 +564,4 @@ then
     rm "$DIRDATA"/"${v}".gbk
 fi
 
-echo -e "### SUCCESSFULLY ENDED"
+echo -e "### SUCCESSFULLY ENDED ###"
