@@ -49,7 +49,7 @@ Knowing the type of virus present in a sample is essential for certain types of 
 ViroScan create 1 folder `log` and 3 folders of `output` : 
 - `data` with the reads mapped and unmapped against the reference indexed during the step of filter-out (in order `data/filter_out/matched` and `data/filter_out/unmatched`) and the reads mapped against viruses during the step of filter-in (`data/filter_in`)
 - `analysis` with the output of breseq created during the step of filter-in
-- `evidences` with the reports `filterin.counts.txt` and `refs.percents.txt`
+- `evidences` with the tables `filterin.counts.txt`, `refs.percents.txt` and `refs.coverage.txt`
 
 ```bash
 |_ log
@@ -63,41 +63,58 @@ ViroScan create 1 folder `log` and 3 folders of `output` :
       |_ evidence
 ```
 
-Here an exemple of the report filterin.counts.txt
+Here an exemple of : 
+- the report filterin.counts.txt
 
 ```bash
-SAMPLE	NBR_LIKELY_VIRAL_READS	NBR_VIRAL_READS
-sample1 	 261604 	 170895
-sample2 	 968370 	 944474
-sample3 	 1150077 	 1113202
-sample4 	 1062478 	 1039411
+SAMPLE	NBR_READS_TO_ALIGNED	NBR_TOTAL_READS_ALIGNED
+sample1	261604	170895
+sample2	968370	944474
 ```
-and the report refs.percents.txt
+
+| Field    | Description                                                  |
+| --------- | ------------------------------------------------------------ |
+| SAMPLE       | The name of sample analyse |
+| NBR_READS_TO_ALIGNED       | Number of the reads to analyse into the step filter-in |
+| NBR_TOTAL_READS_ALIGNED       | Number of the total reads aligned against viruses |
+
+- the report refs.percents.txt
 
 ```bash
-SAMPLE	REFERENCE	PERCENT
+SAMPLE	REFERENCE	PERCENT_OF_READS_ALIGNED
 sample1 	 FM955841 	 16.3
 sample1 	 HPU31785 	 7.3
 sample1 	 PPH5CG 	 53.6
 sample1 	 X55965 	 22.0
 sample2 	 HPU31781 	 99.3
-sample3 	 FM955841 	 3.0
-sample3 	 HPU31785 	 2.1
-sample3 	 PPH5CG 	 30.5
-sample3 	 X55965 	 63.7
-sample4 	 HPU31781 	 99.3
 ```
-
-Here a description of the fields
 
 | Field    | Description                                                  |
 | --------- | ------------------------------------------------------------ |
 | SAMPLE       | The name of sample analyse |
-| NBR_READS_TO_ALIGNED       | Number of the reads analyse into the step filter-in |
-| NBR_VIRAL_READS       | Number of the reads aligned against at least one Genbank reference |
 | REFERENCE       | The LOCUS name of the Genbank reference |
-| PERCENT       | The percent of reads aligned against the Genbank reference |
+| PERCENT_OF_READS_ALIGNED       | The percent of reads aligned against the virus |
 
+- the report refs.coverage.txt
+
+```bash
+SAMPLE	REFERENCE	AVERAGE_COVERAGE	MIN_COVERAGE	MAX_COVERAGE BASES_COVERED_AT_LEAST_TWICE BASES_COVERED_AT_LEAST_TWENTY_TIMES
+sample1 FM955841	460.099	0	2614	2097	2095
+sample1	HPU31785	204.656	0	1662	2419	2136
+sample1	PPH5CG	1497.15	0	7998	5552	4101
+sample1	X55965	601.908	0	4321	1542	1539
+sample2	HPU31781	7545.88	1	8002	7323	7323
+```
+
+| Field    | Description                                                  |
+| --------- | ------------------------------------------------------------ |
+| SAMPLE       | The name of sample analyse |
+| REFERENCE       | The LOCUS name of the Genbank reference |
+| AVERAGE_COVERAGE       | The average coverage of the virus |
+| MIN_COVERAGE       | Minimum coverage |
+| MAX_COVERAGE       | Maximum coverage |
+| BASES_COVERED_AT_LEAST_TWICE       | Number of covered bases with depth > 2 |
+| BASES_COVERED_AT_LEAST_TWENTY_TIMES     | Number of covered bases with depth > 20 |
 
 ## To start
 
