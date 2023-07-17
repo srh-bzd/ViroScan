@@ -67,7 +67,7 @@ Here an exemple of :
 - the table filterin.counts.txt
 
 ```bash
-SAMPLE	NBR_READS_TO_ALIGNED	NBR_TOTAL_READS_ALIGNED
+SAMPLE	NBR_READS_TO_ALIGN	NBR_TOTAL_READS_ALIGNED
 sample1	261604	170895
 sample2	968370	944474
 ```
@@ -75,7 +75,7 @@ sample2	968370	944474
 | Field    | Description                                                  |
 | --------- | ------------------------------------------------------------ |
 | SAMPLE       | The name of sample analyse |
-| NBR_READS_TO_ALIGNED       | Number of the reads to analyse into the step filter-in |
+| NBR_READS_TO_ALIGN       | Number of the reads to analyse into the step filter-in |
 | NBR_TOTAL_READS_ALIGNED       | Number of the total reads aligned against viruses |
 
 - the table refs.percents.txt
