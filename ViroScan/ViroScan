@@ -357,7 +357,7 @@ mkdir -p "${o}"/log
 # Create a temporary directory
 mkdir -p "${o}"/tmp
 
-# Create directory with tool's output and evidence into the output directory of results
+# Create directory with tool's output and evidences into the output directory of results
 mkdir -p "${o}"/output
 mkdir -p "${o}"/output/data
 if [ ! -z "$REFINDEXED" ]
@@ -367,7 +367,7 @@ then
     mkdir -p "${o}"/output/data/filter_out/unmatched
 fi
 mkdir -p "${o}"/output/data/filter_in
-mkdir -p "${o}"/output/evidence
+mkdir -p "${o}"/output/evidences
 mkdir -p "${o}"/output/analysis
 
 
@@ -443,7 +443,7 @@ then
         
         echo -e "*** REPORT NUMBER OF TOTAL READS ALIGNED AND PERCENT OF READS FROM EACH VIRUS IDENTIFIED\n"
         # Run python script to report percent of reads of interest aligned, according to the treshold, into a table and the number of reads input aligned
-        python3 "$DIRSCRIPTS"/write_output_tables.py "$fastq_name" "${o}"/output/analysis/"$fastq_name"/output/summary.json "${o}"/output/evidence/refs.percents.txt "$THRESHOLD" --output_counts "${o}"/output/evidence/filterin.counts.txt
+        python3 "$DIRSCRIPTS"/write_output_tables.py "$fastq_name" "${o}"/output/analysis/"$fastq_name"/output/summary.json "${o}"/output/evidences/refs.percents.txt "$THRESHOLD" --output_counts "${o}"/output/evidences/filterin.counts.txt
     
     done
     
@@ -455,17 +455,17 @@ then
         "$SAMTOOLS" view -h "${o}"/output/analysis/"$sample"/data/reference.bam "$reference" > "${o}"/tmp/"$sample"_"$reference".sam
 
         # Calcul metrics about coverage
-        "$SAMTOOLS" depth -a "${o}"/tmp/"$sample"_"$reference".sam | awk 'NR==1 {maxcov=0;mincov=1}; NR>1 {sumcov+=$3; if(mincov>$3) mincov=$3; if(maxcov<$3) maxcov=$3; if($3>2) {covmoretwo++}; if($3>20) {covmoretwenty++}; cnt = NR} END {print spl"\t"ref"\t"sumcov/(cnt-1)"\t"mincov"\t"maxcov"\t"covmoretwo"\t"covmoretwenty}' spl="$sample" ref="$reference" >> "${o}"/output/evidence/refs.coverage.txt
+        "$SAMTOOLS" depth -a "${o}"/tmp/"$sample"_"$reference".sam | awk 'NR==1 {maxcov=0;mincov=1}; NR>1 {sumcov+=$3; if(mincov>$3) mincov=$3; if(maxcov<$3) maxcov=$3; if($3>2) {covmoretwo++}; if($3>20) {covmoretwenty++}; cnt = NR} END {print spl"\t"ref"\t"sumcov/(cnt-1)"\t"mincov"\t"maxcov"\t"covmoretwo"\t"covmoretwenty}' spl="$sample" ref="$reference" >> "${o}"/output/evidences/refs.coverage.txt
 
         # Retrieve reads aligned and save them into a fastq file
         cat "${o}"/tmp/"$sample"_"$reference".sam | grep -v ^@ | awk 'NR%2==1 {print "@"$1"_1\n"$10"\n+\n"$11}' > "${o}"/output/data/filter_in/"$sample"_"$reference".fastq
         rm "${o}"/tmp/"$sample"_"$reference".sam
-    done < "${o}"/output/evidence/refs.percents.txt
+    done < "${o}"/output/evidences/refs.percents.txt
 
     # To finalize, add the header to output files
-    sed -i '1 i\SAMPLE\tNBR_READS_TO_ALIGNED\tNBR_TOTAL_READS_ALIGNED' "${o}"/output/evidence/filterin.counts.txt
-    sed -i '1 i\SAMPLE\tREFERENCE\tPERCENT_OF_READS_ALIGNED' "${o}"/output/evidence/refs.percents.txt 
-    sed -i '1 i\SAMPLE\tREFERENCE\tAVERAGE_COVERAGE\tMIN_DEPTH\tMAX_DEPTH\tBASES_COVERED_AT_LEAST_TWICE\tBASES_COVERED_AT_LEAST_TWENTY_TIMES' "${o}"/output/evidence/refs.coverage.txt
+    sed -i '1 i\SAMPLE\tNBR_READS_TO_ALIGN\tNBR_TOTAL_READS_ALIGNED' "${o}"/output/evidences/filterin.counts.txt
+    sed -i '1 i\SAMPLE\tREFERENCE\tPERCENT_OF_READS_ALIGNED' "${o}"/output/evidences/refs.percents.txt 
+    sed -i '1 i\SAMPLE\tREFERENCE\tAVERAGE_COVERAGE\tMIN_DEPTH\tMAX_DEPTH\tBASES_COVERED_AT_LEAST_TWICE\tBASES_COVERED_AT_LEAST_TWENTY_TIMES' "${o}"/output/evidences/refs.coverage.txt
 fi
 
 
@@ -530,7 +530,7 @@ then
 
         echo -e "*** REPORT NUMBER OF TOTAL READS ALIGNED AND PERCENT OF READS FROM EACH VIRUS IDENTIFIED\n"
         # Run python script to report percent of reads of interest aligned, according to the treshold, into a table and the number of reads input aligned
-        python3 "$DIRSCRIPTS"/write_output_tables.py "$fastq_name" "${o}"/output/analysis/"$fastq_name"/output/summary.json "${o}"/output/evidence/refs.percents.txt "$THRESHOLD" --output_counts "${o}"/output/evidence/filterin.counts.txt
+        python3 "$DIRSCRIPTS"/write_output_tables.py "$fastq_name" "${o}"/output/analysis/"$fastq_name"/output/summary.json "${o}"/output/evidences/refs.percents.txt "$THRESHOLD" --output_counts "${o}"/output/evidences/filterin.counts.txt
 
     done
 
@@ -542,17 +542,17 @@ then
         "$SAMTOOLS" view -h "${o}"/output/analysis/"$sample"/data/reference.bam "$reference" > "${o}"/tmp/"$sample"_"$reference".sam
 
         # Calcul metrics about coverage
-        "$SAMTOOLS" depth -a "${o}"/tmp/"$sample"_"$reference".sam | awk 'NR==1 {maxcov=0;mincov=1}; NR>1 {sumcov+=$3; if(mincov>$3) mincov=$3; if(maxcov<$3) maxcov=$3; if($3>2) {covmoretwo++}; if($3>20) {covmoretwenty++}; cnt = NR} END {print spl"\t"ref"\t"sumcov/(cnt-1)"\t"mincov"\t"maxcov"\t"covmoretwo"\t"covmoretwenty}' spl="$sample" ref="$reference" >> "${o}"/output/evidence/refs.coverage.txt
+        "$SAMTOOLS" depth -a "${o}"/tmp/"$sample"_"$reference".sam | awk 'NR==1 {maxcov=0;mincov=1}; NR>1 {sumcov+=$3; if(mincov>$3) mincov=$3; if(maxcov<$3) maxcov=$3; if($3>2) {covmoretwo++}; if($3>20) {covmoretwenty++}; cnt = NR} END {print spl"\t"ref"\t"sumcov/(cnt-1)"\t"mincov"\t"maxcov"\t"covmoretwo"\t"covmoretwenty}' spl="$sample" ref="$reference" >> "${o}"/output/evidences/refs.coverage.txt
 
         # Retrieve reads aligned and save them into a fastq file
         cat "${o}"/tmp/"$sample"_"$reference".sam | grep -v ^@ | awk 'NR%2==1 {print "@"$1"_1\n"$10"\n+\n"$11}' > "${o}"/output/data/filter_in/"$sample"_"$reference".fastq
         rm "${o}"/tmp/"$sample"_"$reference".sam
-    done < "${o}"/output/evidence/refs.percents.txt
+    done < "${o}"/output/evidences/refs.percents.txt
 
     # To finalize, add the header to output files
-    sed -i '1 i\SAMPLE\tNBR_READS_TO_ALIGNED\tNBR_TOTAL_READS_ALIGNED' "${o}"/output/evidence/filterin.counts.txt
-    sed -i '1 i\SAMPLE\tREFERENCE\tPERCENT_OF_READS_ALIGNED' "${o}"/output/evidence/refs.percents.txt 
-    sed -i '1 i\SAMPLE\tREFERENCE\tAVERAGE_COVERAGE\tMIN_DEPTH\tMAX_DEPTH\tBASES_COVERED_AT_LEAST_TWICE\tBASES_COVERED_AT_LEAST_TWENTY_TIMES' "${o}"/output/evidence/refs.coverage.txt
+    sed -i '1 i\SAMPLE\tNBR_READS_TO_ALIGN\tNBR_TOTAL_READS_ALIGNED' "${o}"/output/evidences/filterin.counts.txt
+    sed -i '1 i\SAMPLE\tREFERENCE\tPERCENT_OF_READS_ALIGNED' "${o}"/output/evidences/refs.percents.txt 
+    sed -i '1 i\SAMPLE\tREFERENCE\tAVERAGE_COVERAGE\tMIN_DEPTH\tMAX_DEPTH\tBASES_COVERED_AT_LEAST_TWICE\tBASES_COVERED_AT_LEAST_TWENTY_TIMES' "${o}"/output/evidences/refs.coverage.txt
 fi
 
 # Remove tmp directory
