@@ -465,7 +465,7 @@ then
     # To finalize, add the header to output files
     sed -i '1 i\SAMPLE\tNBR_READS_TO_ALIGNED\tNBR_TOTAL_READS_ALIGNED' "${o}"/output/evidence/filterin.counts.txt
     sed -i '1 i\SAMPLE\tREFERENCE\tPERCENT_OF_READS_ALIGNED' "${o}"/output/evidence/refs.percents.txt 
-    sed -i '1 i\SAMPLE\tREFERENCE\tAVERAGE_COVERAGE\tMIN_COVERAGE\tMAX_COVERAGE\tBASES_COVERED_AT_LEAST_TWICE\tBASES_COVERED_AT_LEAST_TWENTY_TIMES' "${o}"/output/evidence/refs.coverage.txt
+    sed -i '1 i\SAMPLE\tREFERENCE\tAVERAGE_COVERAGE\tMIN_DEPTH\tMAX_DEPTH\tBASES_COVERED_AT_LEAST_TWICE\tBASES_COVERED_AT_LEAST_TWENTY_TIMES' "${o}"/output/evidence/refs.coverage.txt
 fi
 
 
@@ -552,7 +552,7 @@ then
     # To finalize, add the header to output files
     sed -i '1 i\SAMPLE\tNBR_READS_TO_ALIGNED\tNBR_TOTAL_READS_ALIGNED' "${o}"/output/evidence/filterin.counts.txt
     sed -i '1 i\SAMPLE\tREFERENCE\tPERCENT_OF_READS_ALIGNED' "${o}"/output/evidence/refs.percents.txt 
-    sed -i '1 i\SAMPLE\tREFERENCE\tAVERAGE_COVERAGE\tMIN_COVERAGE\tMAX_COVERAGE\tBASES_COVERED_AT_LEAST_TWICE\tBASES_COVERED_AT_LEAST_TWENTY_TIMES' "${o}"/output/evidence/refs.coverage.txt
+    sed -i '1 i\SAMPLE\tREFERENCE\tAVERAGE_COVERAGE\tMIN_DEPTH\tMAX_DEPTH\tBASES_COVERED_AT_LEAST_TWICE\tBASES_COVERED_AT_LEAST_TWENTY_TIMES' "${o}"/output/evidence/refs.coverage.txt
 fi
 
 # Remove tmp directory
@@ -564,4 +564,4 @@ then
     rm "$DIRDATA"/"${v}".gbk
 fi
 
-echo -e "### SUCCESSFULLY ENDED ###"
+echo -e "### SUCCESSFULLY ENDED"
