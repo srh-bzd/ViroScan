@@ -110,7 +110,7 @@ sample2	HPU31781	7545.88	1	8002	7323	7323
 | --------- | ------------------------------------------------------------ |
 | SAMPLE       | The name of sample analyse |
 | REFERENCE       | The LOCUS name of the Genbank reference |
-| AVERAGE_COVERAGE       | The average coverage of the virus |
+| AVERAGE_DEPTH       | Average depth |
 | MIN_DEPTH       | Minimum depth |
 | MAX_DEPTH       | Maximum depth |
 | BASES_COVERED_AT_LEAST_TWICE       | Number of covered bases with depth > 2 |
