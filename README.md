@@ -60,7 +60,7 @@ ViroScan create 1 folder `log` and 3 folders of `output` :
                   |_ matched
                   |_ unmatched
            |_ filter_in
-      |_ evidence
+      |_ evidences
 ```
 
 Here an exemple of : 
