@@ -64,7 +64,7 @@ ViroScan create 1 folder `log` and 3 folders of `output` :
 ```
 
 Here an exemple of : 
-- the report filterin.counts.txt
+- the table filterin.counts.txt
 
 ```bash
 SAMPLE	NBR_READS_TO_ALIGNED	NBR_TOTAL_READS_ALIGNED
@@ -78,7 +78,7 @@ sample2	968370	944474
 | NBR_READS_TO_ALIGNED       | Number of the reads to analyse into the step filter-in |
 | NBR_TOTAL_READS_ALIGNED       | Number of the total reads aligned against viruses |
 
-- the report refs.percents.txt
+- the table refs.percents.txt
 
 ```bash
 SAMPLE	REFERENCE	PERCENT_OF_READS_ALIGNED
@@ -95,7 +95,7 @@ sample2 	 HPU31781 	 99.3
 | REFERENCE       | The LOCUS name of the Genbank reference |
 | PERCENT_OF_READS_ALIGNED       | The percent of reads aligned against the virus |
 
-- the report refs.coverage.txt
+- the table refs.coverage.txt
 
 ```bash
 SAMPLE	REFERENCE	AVERAGE_COVERAGE	MIN_COVERAGE	MAX_COVERAGE BASES_COVERED_AT_LEAST_TWICE BASES_COVERED_AT_LEAST_TWENTY_TIMES
