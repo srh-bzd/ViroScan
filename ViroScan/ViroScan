@@ -126,7 +126,7 @@ function usage(){
                              Default 1 ;\n\n"
     
     printf "\t-b                 : breseq options. 
-                             Default \"-p -t\".
+                             Default \"-p\".
                              Make sure if you want to change default options to
                              input the value with quotation marks.
                              Warning : Do not inform option -j ;\n\n"
@@ -137,7 +137,7 @@ function usage(){
     printf "\t-h                 : Help ;\n" 
 
     printf "\nExample :\n"
-    printf "/home/user/ViroScan/ViroScan -f /home/user/dir_of_data_to_analyse -v papillomavirus -s pe -o /home/user/data_analysed -x /home/user/GRCh38_noalt_as/GRCh38_noalt_as -u 1 -p 12\n"
+    printf "/home/user/ViroScan/ViroScan -f /home/user/dir_of_data_to_analyse -v papillomavirus -s pe -o /home/user/data_analysed -x /home/user/GRCh38_noalt_as/GRCh38_noalt_as -u 1 -p 12 -b "--no-junction-prediction"\n"
 }
 
 # Print usage if there is just the name of the script in command line
