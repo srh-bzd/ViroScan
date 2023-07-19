@@ -36,7 +36,7 @@ export GDTOOLS=gdtools
 export SAMTOOLS=samtools
 
 # breseq parameters
-export BRESEQ_OPTIONS="-p -t"
+export BRESEQ_OPTIONS="-p"
 
 # Threshold
 export THRESHOLD=5
