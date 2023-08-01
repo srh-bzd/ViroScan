@@ -449,7 +449,9 @@ then
         python3 "$DIRSCRIPTS"/write_output_tables.py "$fastq_name" "${o}"/output/analysis/"$fastq_name"/output/summary.json "${o}"/output/evidences/refs.percents.txt "$THRESHOLD" --output_counts "${o}"/output/evidences/filterin.counts.txt
     
     done
-    
+
+    echo -e "\n------------------  All samples  ---------------------"
+
     echo -e "*** REPORT COVERAGE FOR EACH VIRUS IDENTIFIED AND RETRIEVE VIRAL READS ALIGNED\n"
     # For each line from the file refs.percents.txt where there are samples and references detected
     while IFS=$'\t' read -r sample reference percent
@@ -539,6 +541,8 @@ then
         python3 "$DIRSCRIPTS"/write_output_tables.py "$fastq_name" "${o}"/output/analysis/"$fastq_name"/output/summary.json "${o}"/output/evidences/refs.percents.txt "$THRESHOLD" --output_counts "${o}"/output/evidences/filterin.counts.txt
 
     done
+
+    echo -e "\n------------------  All samples  ---------------------"
 
     echo -e "*** REPORT COVERAGE FOR EACH VIRUS IDENTIFIED AND RETRIEVE VIRAL READS ALIGNED\n"
     # For each line from the file refs.percents.txt where there are samples and references detected
