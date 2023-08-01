@@ -440,6 +440,9 @@ then
             # Run breseq to aligned and analysed reads
             "$BRESEQ" -r "$DIRDATA"/"${v}".gbk $BRESEQ_OPTIONS -j "$THREADS" "$inputfile" -o "${o}"/output/analysis/"$fastq_name" &>> "${o}"/log/"$fastq_name""_breseq.log"
         fi
+
+        # Remove useless dir of breseq output
+        rm -r "${o}"/output/analysis/"$fastq_name"/0*
         
         echo -e "*** REPORT NUMBER OF TOTAL READS ALIGNED AND PERCENT OF READS FROM EACH VIRUS IDENTIFIED\n"
         # Run python script to report percent of reads of interest aligned, according to the treshold, into a table and the number of reads input aligned
@@ -527,6 +530,9 @@ then
                 "$BRESEQ" -r "$DIRDATA"/"${v}".gbk $BRESEQ_OPTIONS -j "$THREADS" "$input_R1_paired_file" "$input_R2_paired_file" "$input_R1_unpaired_file" "$input_R2_unpaired_file" -o "${o}"/output/analysis/"$fastq_name" &>> "${o}"/log/"$fastq_name""_breseq.log"
             fi 
         fi
+
+        # Remove useless dir of breseq output
+        rm -r "${o}"/output/analysis/"$fastq_name"/0*
 
         echo -e "*** REPORT NUMBER OF TOTAL READS ALIGNED AND PERCENT OF READS FROM EACH VIRUS IDENTIFIED\n"
         # Run python script to report percent of reads of interest aligned, according to the treshold, into a table and the number of reads input aligned
