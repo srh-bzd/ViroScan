@@ -190,7 +190,7 @@ To launch the tool, type the following command in the local directory where the 
 | Parameter | Type    | Description                                                  |
 | --------- | ------- | ------------------------------------------------------------ |
 | -f        | String  | Path of the FASTQ file(s) to analyse. In case of paired-end, make sure your files have '_R1\*paired',  '_R2\*paired', '_R1\*unpaired' '_R2\*unpaired' patterns. The underscore is essential. '.fastq', '.fq' and '.gz' extensions are accepted |
-| -v        | String  | Virus to use to find the closest viral sequence. Available : adenoviridae, adomavirus, anelloviridae, circoviridae, herpesvirales, papillomavirus, parvoviridae, polyomavirus. If you want to use your own viral sequences, add a '.gbk' file (Genbank format) into the data directory. Make sure that the name is 'virus.gbk'. You can zip it to limit the space used. In this case, the name of the zip file must be 'virus.gbk.zip' |
+| -v        | String  | Virus to use to find the closest viral sequence. Available : adenoviridae, adomavirus, anelloviridae, circoviridae, herpesvirales, papillomavirus, parvoviridae, polyomavirus, all. If you want to use your own viral sequences, add a '.gbk' file (Genbank format) into the data directory. Make sure that the name is 'virus.gbk'. You can zip it to limit the space used. In this case, the name of the zip file must be 'virus.gbk.zip' |
 | -s        | String  | Single-end or paired-end data to analyse                     |
 | -o        | String  | Path of the output directory where results will be written. If the directory doesn't exist, it will be created |
 
