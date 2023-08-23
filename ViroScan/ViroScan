@@ -307,6 +307,11 @@ then
     echo -e "ViroScan: error : breseq is needed to use ViroScan"
 	exit
 fi
+if ! [ -x "$(command -v samtools --version)" ]
+then
+    echo -e "ViroScan: error : samtools is needed to use ViroScan"
+	exit
+fi
 if ! [ -x "$(command -v R --version)" ]
 then
     echo -e "ViroScan: error : R is needed to use ViroScan"
