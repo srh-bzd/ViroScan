@@ -33,7 +33,8 @@ flowchart TD
     B -- No --> F{Filter in};
     B -- Yes --> C[Align against reference];
     D([Reference]) -.-> C;
-    C --> E([Reads of interest]);
+    C --> K([Mapped reads]);
+    C --> E([Unmapped reads]);
     E --> F;
     F --> G[Align against virus];
     H[(Viruses)] -.-> G;
