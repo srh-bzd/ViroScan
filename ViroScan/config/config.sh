@@ -26,9 +26,6 @@ export DIRSCRIPTS="$(dirname $0)"/src
 # Path to the directory of data
 export DIRDATA="$(dirname $0)"/data
 
-# Path to the reference indexed
-export REFINDEXED
-
 # Path of tools used
 export BOWTIE=bowtie2
 export BRESEQ=breseq
