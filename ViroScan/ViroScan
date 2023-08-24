@@ -197,7 +197,7 @@ fi
 # Check if the input directory exist
 if [ ! -d "${f}" ]
 then
-	echo -e "ERROR -f : The FASTQ directory ${f} doesn't exist"
+	echo -e "ViroScan: error : The FASTQ directory ${f} doesn't exist"
 	exit
 fi
 
@@ -205,7 +205,7 @@ fi
 NBFASTQFILE=`ls -1 "${f}"/*.f*q* 2>/dev/null | wc -l`
 if [ $NBFASTQFILE = 0 ]
 then 
-	echo -e "ViroScan: warning : : There is no FASTQ file into the directory ${f}"
+	echo -e "ViroScan: warning : There is no FASTQ file into the directory ${f}"
 	exit
 fi 
 
@@ -297,17 +297,17 @@ then
 fi
 
 # Check if tools are available
-if ! [ -x "$(command -v bowtie2 --version)" ]
+if ! [ -x "$(command -v "$BOWTIE" --version)" ]
 then
     echo -e "ViroScan: error : Bowtie2 is needed to use ViroScan"
 	exit
 fi
-if ! [ -x "$(command -v breseq --version)" ]
+if ! [ -x "$(command -v "$BRESEQ" --version)" ]
 then
     echo -e "ViroScan: error : breseq is needed to use ViroScan"
 	exit
 fi
-if ! [ -x "$(command -v samtools --version)" ]
+if ! [ -x "$(command -v "$SAMTOOLS" --version)" ]
 then
     echo -e "ViroScan: error : samtools is needed to use ViroScan"
 	exit
