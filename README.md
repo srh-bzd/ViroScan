@@ -41,7 +41,7 @@ flowchart TD
     G --> I([Mapped reads\n]);
     G --> L([Metrics]);
     G --> M([Tool analysis results]);
-    subgraph identifier["\n\n\nOutputs"]
+    subgraph identifier["\n\n\nOutput"]
     I;
     L;
     M; 
