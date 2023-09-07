@@ -30,10 +30,11 @@ def parse_json_file(json_file, threshold):
     dictPercentMappedReadsRefs = dict()
     nbrTotInputReads = dictJsonFile["reads"]["total_reads"]
     nbrTotMappedReads = dictJsonFile["reads"]["total_aligned_reads"]
-    for ref in dictJsonFile["references"]["reference"]:
-        percentMappedReadsRef=round(float(dictJsonFile["references"]["reference"][ref]["num_reads_mapped_to_reference"]/nbrTotMappedReads)*100, 1)
-        if (percentMappedReadsRef >= threshold):
-            dictPercentMappedReadsRefs[ref]=percentMappedReadsRef
+    if (nbrTotMappedReads != 0): # Security to not divide by 0
+        for ref in dictJsonFile["references"]["reference"]:
+            percentMappedReadsRef=round(float(dictJsonFile["references"]["reference"][ref]["num_reads_mapped_to_reference"]/nbrTotMappedReads)*100, 1)
+            if (percentMappedReadsRef >= threshold):
+                dictPercentMappedReadsRefs[ref]=percentMappedReadsRef
     return nbrTotInputReads, nbrTotMappedReads, dictPercentMappedReadsRefs
 
 
