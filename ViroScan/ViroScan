@@ -468,7 +468,7 @@ then
         "$SAMTOOLS" depth -a "${o}"/tmp/"$sample"_"$reference".sam | awk 'NR==1 {maxcov=0;mincov=1}; NR>1 {sumcov+=$3; if(mincov>$3) mincov=$3; if(maxcov<$3) maxcov=$3; if($3>2) {covmoretwo++}; if($3>20) {covmoretwenty++}; cnt = NR} END {print spl"\t"ref"\t"sumcov/(cnt-1)"\t"mincov"\t"maxcov"\t"covmoretwo"\t"covmoretwenty}' spl="$sample" ref="$reference" >> "${o}"/output/evidences/refs.coverage.txt
 
         # Retrieve reads aligned and save them into a fastq file
-        cat "${o}"/tmp/"$sample"_"$reference".sam | grep -v ^@ | awk 'NR%2==1 {print "@"$1"_1\n"$10"\n+\n"$11}' > "${o}"/output/data/filter_in/"$sample"_"$reference".fastq
+        "$SAMTOOLS" fastq -@ "$THREADS" -0 "${o}"/output/data/filter_in/"$sample"_"$reference".fastq.gz "${o}"/tmp/"$sample"_"$reference".sam  
         rm "${o}"/tmp/"$sample"_"$reference".sam
     done < "${o}"/output/evidences/refs.percents.txt
 
