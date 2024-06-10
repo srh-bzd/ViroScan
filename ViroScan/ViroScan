@@ -465,7 +465,7 @@ then
         "$SAMTOOLS" view -h "${o}"/output/analysis/"$sample"/data/reference.bam "$reference" > "${o}"/tmp/"$sample"_"$reference".sam
 
         # Calcul metrics about coverage
-        "$SAMTOOLS" depth -a "${o}"/tmp/"$sample"_"$reference".sam | awk 'NR==1 {maxcov=0;mincov=1}; NR>1 {sumcov+=$3; if(mincov>$3) mincov=$3; if(maxcov<$3) maxcov=$3; if($3>2) {covmoretwo++}; if($3>20) {covmoretwenty++}; cnt = NR} END {print spl"\t"ref"\t"sumcov/(cnt-1)"\t"mincov"\t"maxcov"\t"covmoretwo"\t"covmoretwenty}' spl="$sample" ref="$reference" >> "${o}"/output/evidences/refs.coverage.txt
+        "$SAMTOOLS" depth -a "${o}"/tmp/"$sample"_"$reference".sam | awk 'NR==1 {maxcov=0;mincov=1000000000}; NR>1 {sumcov+=$3; if(mincov>$3) mincov=$3; if(maxcov<$3) maxcov=$3; cnt = NR} END {print spl"\t"ref"\t"sumcov/(cnt-1)"\t"mincov"\t"maxcov}' spl="$sample" ref="$reference" >> "${o}"/output/evidences/refs.coverage.txt
 
         # Retrieve reads aligned and save them into a fastq file
         "$SAMTOOLS" fastq -@ "$THREADS" -0 "${o}"/output/data/filter_in/"$sample"_"$reference".fastq.gz "${o}"/tmp/"$sample"_"$reference".sam  
@@ -475,7 +475,7 @@ then
     # To finalize, add the header to output files
     sed -i '1 i\SAMPLE\tNBR_READS_TO_ALIGN\tNBR_TOTAL_READS_ALIGNED' "${o}"/output/evidences/filterin.counts.txt
     sed -i '1 i\SAMPLE\tREFERENCE\tPERCENT_OF_READS_ALIGNED' "${o}"/output/evidences/refs.percents.txt 
-    sed -i '1 i\SAMPLE\tREFERENCE\tAVERAGE_DEPTH\tMIN_DEPTH\tMAX_DEPTH\tBASES_COVERED_AT_LEAST_TWICE\tBASES_COVERED_AT_LEAST_TWENTY_TIMES' "${o}"/output/evidences/refs.coverage.txt
+    sed -i '1 i\SAMPLE\tREFERENCE\tAVERAGE_DEPTH\tMIN_DEPTH\tMAX_DEPTH' "${o}"/output/evidences/refs.coverage.txt
 fi
 
 
@@ -557,7 +557,7 @@ then
         "$SAMTOOLS" view -@ "$THREADS" -h "${o}"/output/analysis/"$sample"/data/reference.bam "$reference" > "${o}"/tmp/"$sample"_"$reference".sam
 
         # Calcul metrics about coverage
-        "$SAMTOOLS" depth -a "${o}"/tmp/"$sample"_"$reference".sam | awk 'NR==1 {maxcov=0;mincov=1}; NR>1 {sumcov+=$3; if(mincov>$3) mincov=$3; if(maxcov<$3) maxcov=$3; if($3>2) {covmoretwo++}; if($3>20) {covmoretwenty++}; cnt = NR} END {print spl"\t"ref"\t"sumcov/(cnt-1)"\t"mincov"\t"maxcov"\t"covmoretwo"\t"covmoretwenty}' spl="$sample" ref="$reference" >> "${o}"/output/evidences/refs.coverage.txt
+        "$SAMTOOLS" depth -a "${o}"/tmp/"$sample"_"$reference".sam | awk 'NR==1 {maxcov=0;mincov=1000000000}; NR>1 {sumcov+=$3; if(mincov>$3) mincov=$3; if(maxcov<$3) maxcov=$3; cnt = NR} END {print spl"\t"ref"\t"sumcov/(cnt-1)"\t"mincov"\t"maxcov}' spl="$sample" ref="$reference" >> "${o}"/output/evidences/refs.coverage.txt
 
         # Retrieve reads aligned and save them into a fastq file
         "$SAMTOOLS" fastq -@ "$THREADS" -0 "${o}"/output/data/filter_in/"$sample"_"$reference".fastq.gz "${o}"/tmp/"$sample"_"$reference".sam  
@@ -567,7 +567,7 @@ then
     # To finalize, add the header to output files
     sed -i '1 i\SAMPLE\tNBR_READS_TO_ALIGN\tNBR_TOTAL_READS_ALIGNED' "${o}"/output/evidences/filterin.counts.txt
     sed -i '1 i\SAMPLE\tREFERENCE\tPERCENT_OF_READS_ALIGNED' "${o}"/output/evidences/refs.percents.txt 
-    sed -i '1 i\SAMPLE\tREFERENCE\tAVERAGE_DEPTH\tMIN_DEPTH\tMAX_DEPTH\tBASES_COVERED_AT_LEAST_TWICE\tBASES_COVERED_AT_LEAST_TWENTY_TIMES' "${o}"/output/evidences/refs.coverage.txt
+    sed -i '1 i\SAMPLE\tREFERENCE\tAVERAGE_DEPTH\tMIN_DEPTH\tMAX_DEPTH' "${o}"/output/evidences/refs.coverage.txt
 fi
 
 # Remove tmp directory
