@@ -29,8 +29,8 @@ ViroScan is an automated pipeline that eliminate reads not of interest according
 title: Workflow of ViroScan
 ---
 flowchart TD
-    A([Input reads to analyse]) --> B{Perform a \nfilter out ?};
-    B -- No --> F{Perform a \nfilter in};
+    A([Input reads to analyse]) --> B{Perform a filter out ?};
+    B -- No --> F{Perform a filter in};
     B -- Yes --> C[Align against reference];
     D([Indexed reference]) -.-> C;
     C --> K([Mapped reads]);
