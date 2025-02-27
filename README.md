@@ -37,11 +37,11 @@ flowchart TD
     C --> E([Unmapped reads]);
     E --> F;
     F --> G[Align against viruses];
-    H[(Database \nof viruses)] -.-> G;
+    H[(Database of viruses)] -.-> G;
     G --> I([Mapped reads\n]);
     G --> L([Metrics]);
     G --> M([Tool analysis results]);
-    subgraph identifier["\n\n\nOutput"]
+    subgraph identifier["Output"]
     I;
     L;
     M; 
@@ -106,12 +106,12 @@ sample2 	 HPU31781 	 99.3
 - the table refs.coverage.txt
 
 ```bash
-SAMPLE	REFERENCE	AVERAGE_COVERAGE	MIN_DEPTH	MAX_DEPTH BASES_COVERED_AT_LEAST_TWICE BASES_COVERED_AT_LEAST_TWENTY_TIMES
-sample1 FM955841	460.099	0	2614	2097	2095
-sample1	HPU31785	204.656	0	1662	2419	2136
-sample1	PPH5CG	1497.15	0	7998	5552	4101
-sample1	X55965	601.908	0	4321	1542	1539
-sample2	HPU31781	7545.88	1	8002	7323	7323
+SAMPLE	REFERENCE	AVERAGE_COVERAGE	MIN_DEPTH	MAX_DEPTH
+sample1 FM955841	460.099	0	2614
+sample1	HPU31785	204.656	0	1662
+sample1	PPH5CG	1497.15	0	7998
+sample1	X55965	601.908	0	4321
+sample2	HPU31781	7545.88	1	8002
 ```
 
 | Field    | Description                                                  |
@@ -121,8 +121,6 @@ sample2	HPU31781	7545.88	1	8002	7323	7323
 | AVERAGE_DEPTH       | Average depth |
 | MIN_DEPTH       | Minimum depth |
 | MAX_DEPTH       | Maximum depth |
-| BASES_COVERED_AT_LEAST_TWICE       | Number of covered bases with depth > 2 |
-| BASES_COVERED_AT_LEAST_TWENTY_TIMES     | Number of covered bases with depth > 20 |
 
 ## To start
 
